@@ -2,6 +2,7 @@ use std::fs;
 use std::path::Path;
 
 const SPECIAL_CHARACTERS: [char; 8] = ['+', '-', '*', '/', '=', '{', '}', ';'];
+const MULTICHAR_OPERATORS: [char; 1] = ['='];
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum TokenType {
@@ -39,7 +40,84 @@ pub fn lex(file: Box<Path>) -> Result<Vec<Vec<Token>>, String> {
 }
 
 fn lex_line(line: &str, line_index: usize) -> Result<Vec<Token>, String> {
+    let mut buffer: Vec<char> = Vec::new();
+    let mut tokens: Vec<Token> = Vec::new();
+    let mut token_type = TokenType::None;
 
+    fn terminate_token(buffer: &mut Vec<char>, tokens: &mut Vec<Token>, token_type: &mut TokenType) {
+        if buffer.is_empty() { return; }
+        tokens.push(Token {
+            token_type: *token_type,
+            contents: buffer.drain(0..).collect::<String>()
+        });
+        *token_type = TokenType::None;
+    }
+
+    for (col, c) in line.chars().enumerate() {
+        if token_type == TokenType::StringLiteral {
+            if c == '"' {
+                buffer.push(c);
+                terminate_token(&mut buffer, &mut tokens, &mut token_type);
+            } else {
+                buffer.push(c);
+            }
+            continue;
+        } else if c.is_whitespace() {
+            terminate_token(&mut buffer, &mut tokens, &mut token_type);
+            continue;
+        }
+
+        let is_special_after_non_special = token_type != TokenType::Special && SPECIAL_CHARACTERS.contains(&c);
+        if is_special_after_non_special {
+            // Terminate the last token, and proceed with handling this special character
+            terminate_token(&mut buffer, &mut tokens, &mut token_type);
+        }
+        
+        let is_new_token_after_special = token_type == TokenType::Special && !SPECIAL_CHARACTERS.contains(&c);
+        if  token_type == TokenType::None || is_new_token_after_special {
+            terminate_token(&mut buffer, &mut tokens, &mut token_type);
+            buffer.push(c);
+            if c.is_ascii_alphabetic() || c == '_' {
+                token_type = TokenType::Symbol;
+            } else if c.is_ascii_digit() {
+                token_type = TokenType::Number;
+            } else if c == '"' {
+                token_type = TokenType::StringLiteral;
+            } else if SPECIAL_CHARACTERS.contains(&c) {
+                token_type = TokenType::Special;
+                if !MULTICHAR_OPERATORS.contains(&c) {
+                    terminate_token(&mut buffer, &mut tokens, &mut token_type);
+                }
+            }
+            continue
+        }
+
+        match token_type {
+            TokenType::Symbol => {
+                if !c.is_ascii_alphanumeric() {
+                    return Err(format!("Unexpected character '{}' at {}:{}", c, line_index + 1, col + 1));
+                }
+                buffer.push(c);
+            }
+            TokenType::Number => {
+                if !c.is_ascii_digit() {
+                    return Err(format!("Unexpected character '{}' at {}:{}", c, line_index + 1, col + 1));
+                }
+                buffer.push(c);
+            }
+            TokenType::Special => {
+                if !SPECIAL_CHARACTERS.contains(&c) {
+                    return Err(format!("Unexpected character '{}' at {}:{}", c, line_index + 1, col + 1));
+                }
+                buffer.push(c);
+            }
+            TokenType::StringLiteral => unreachable!(),
+            TokenType::None => unreachable!()
+        }
+    }
+
+    terminate_token(&mut buffer, &mut tokens, &mut token_type);
+    Ok(tokens)
 }
 
 #[cfg(test)]
@@ -49,7 +127,7 @@ mod test {
 
     #[test]
     fn test_string_assignment() {
-        let line = "let foo = \"bar\"";
+        let line = "let foo=\"bar\"";
         let expected = vec![
             Token { token_type: Symbol, contents: "let".to_string() },
             Token { token_type: Symbol, contents: "foo".to_string() },
@@ -84,7 +162,7 @@ mod test {
 
     #[test]
     fn test_equality() {
-        let line = "if foo == 500 {";
+        let line = "if foo==500{";
         let expected = vec![
             Token { token_type: Symbol, contents: "if".to_string() },
             Token { token_type: Symbol, contents: "foo".to_string() },
