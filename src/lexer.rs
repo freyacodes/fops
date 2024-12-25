@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-const SPECIAL_CHARACTERS: [char; 8] = ['+', '-', '*', '/', '=', '{', '}', ';'];
+const SPECIAL_CHARACTERS: [char; 10] = ['+', '-', '*', '/', '=', '(', ')', '{', '}', ';'];
 const MULTICHAR_OPERATORS: [char; 1] = ['='];
 
 #[derive(PartialEq, Copy, Clone, Debug)]
@@ -131,7 +131,7 @@ mod test {
 
     #[test]
     fn test_string_assignment() {
-        let line = "let foo=\"bar\"";
+        let line = "let foo=\"bar\";";
         let expected = vec![
             Token { token_type: Symbol, contents: "let".to_string() },
             Token { token_type: Symbol, contents: "foo".to_string() },
