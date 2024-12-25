@@ -32,10 +32,9 @@ pub fn parse(tokens: Vec<Vec<Token>>) -> Result<Vec<AstElement>, String> {
 #[cfg(test)]
 mod test {
     use std::vec;
-    use AstElement::{BiOperator, NumberLiteral, Symbol};
     use BiOperatorType::{Division, Multiplication};
     use crate::ast::{parse, AstElement, BiOperatorType};
-    use crate::ast::AstElement::{If, Let, Reassignment, StringLiteral};
+    use crate::ast::AstElement::{BiOperator, If, Let, NumberLiteral, Reassignment, StringLiteral, Symbol};
     use crate::lexer;
 
     #[test]
