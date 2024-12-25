@@ -19,7 +19,7 @@ pub struct Token {
     contents: String,
 }
 
-pub fn lex(file: Box<Path>) -> Result<Vec<Vec<Token>>, String> {
+pub fn lex_from_file(file: Box<Path>) -> Result<Vec<Vec<Token>>, String> {
     let file_name = file.file_name()
         .expect("File name does not end in ..")
         .to_str()
@@ -30,9 +30,13 @@ pub fn lex(file: Box<Path>) -> Result<Vec<Vec<Token>>, String> {
         Ok(contents) => contents,
         Err(err) => return Err(format!("Unable to read file {}: {}", file_name, err))
     };
-    
+
+    lex_from_string(file_contents)
+}
+
+pub fn lex_from_string(string: String) -> Result<Vec<Vec<Token>>, String> {
     let mut tokenized_lines: Vec<Vec<Token>> = Vec::new();
-    for (line_index, line) in file_contents.lines().enumerate() {
+    for (line_index, line) in string.lines().enumerate() {
         tokenized_lines.push(lex_line(line, line_index)?);
     }
 
