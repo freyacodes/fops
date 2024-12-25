@@ -11,8 +11,8 @@ pub enum BiOperatorType {
 
 #[derive(PartialEq, Debug)]
 pub enum AstElement {
-    Let { name: String, assignment: Box<AstElement> },
-    Assignment { statement: Box<AstElement> },
+    Let { name: String, statement: Box<AstElement> },
+    Reassignment { name: String, statement: Box<AstElement> },
     If { condition: Box<AstElement>, then: Vec<AstElement>, other_blocks: Vec<AstElement> },
     ElseIf { condition: Box<AstElement>, then: Vec<AstElement> },
     Else { then: Vec<AstElement> },
@@ -32,25 +32,42 @@ pub fn parse(tokens: Vec<Vec<Token>>) -> Result<Vec<AstElement>, String> {
 #[cfg(test)]
 mod test {
     use std::vec;
+    use AstElement::{BiOperator, NumberLiteral, Symbol};
+    use BiOperatorType::{Division, Multiplication};
     use crate::ast::{parse, AstElement, BiOperatorType};
-    use crate::ast::AstElement::{If, Let, StringLiteral};
+    use crate::ast::AstElement::{If, Let, Reassignment, StringLiteral};
     use crate::lexer;
 
     #[test]
-    fn test_assignment() {
+    fn test_reassignment() {
+        let lexed = lexer::lex_from_string("let foo = -5;".to_string()).unwrap();
+        let expected = vec![
+            Reassignment {
+                name: "foo".to_string(),
+                statement: Box::new(
+                    NumberLiteral { value: "-5".to_string() }
+                )
+            },
+        ];
+
+        assert_eq!(parse(lexed), Ok(expected));
+    }
+
+    #[test]
+    fn test_let_assignment() {
         let lexed = lexer::lex_from_string("let foo = (-500*bar)/10;".to_string()).unwrap();
         let expected = vec![
             Let {
                 name: "foo".to_string(),
-                assignment: Box::new(
-                    AstElement::BiOperator {
-                        bi_operator_type: BiOperatorType::Division,
-                        left: Box::new(AstElement::BiOperator {
-                            bi_operator_type: BiOperatorType::Multiplication,
-                            left: Box::new(AstElement::NumberLiteral { value: "-500".to_string() }),
-                            right: Box::new(AstElement::Symbol { name: "bar".to_string() })
+                statement: Box::new(
+                    BiOperator {
+                        bi_operator_type: Division,
+                        left: Box::new(BiOperator {
+                            bi_operator_type: Multiplication,
+                            left: Box::new(NumberLiteral { value: "-500".to_string() }),
+                            right: Box::new(Symbol { name: "bar".to_string() })
                         }),
-                        right: Box::new(AstElement::NumberLiteral { value: "10".to_string() })
+                        right: Box::new(NumberLiteral { value: "10".to_string() })
                     }
                 )
             },
@@ -66,7 +83,7 @@ mod test {
 
         let expected = vec![
             If {
-                condition: Box::new(AstElement::Symbol { name: "foo".to_string() }),
+                condition: Box::new(Symbol { name: "foo".to_string() }),
                 then: vec![AstElement::FunctionCall {
                     name: "println".to_string(),
                     arguments: vec![
@@ -75,7 +92,7 @@ mod test {
                 }],
                 other_blocks: vec![
                     AstElement::ElseIf {
-                        condition: Box::new(AstElement::Symbol { name: "bar".to_string() }),
+                        condition: Box::new(Symbol { name: "bar".to_string() }),
                         then: vec![AstElement::FunctionCall {
                             name: "println".to_string(),
                             arguments: vec![
