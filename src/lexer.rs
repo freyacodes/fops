@@ -15,8 +15,8 @@ pub enum TokenType {
 
 #[derive(PartialEq, Debug)]
 pub struct Token {
-    token_type: TokenType,
-    contents: String,
+    pub token_type: TokenType,
+    pub contents: String,
 }
 
 pub fn lex_from_file(file: Box<Path>) -> Result<Vec<Vec<Token>>, String> {
