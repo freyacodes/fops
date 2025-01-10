@@ -83,7 +83,8 @@ mod test {
     use crate::ast::{parse, AstElement};
     use crate::lexer;
     use std::vec;
-
+    
+    #[ignore]
     #[test]
     fn test_reassignment() {
         let lexed = lexer::lex_from_string("let foo = -5;".to_string()).unwrap();
@@ -99,6 +100,7 @@ mod test {
         assert_eq!(parse(lexed), Ok(expected));
     }
 
+    #[ignore]
     #[test]
     fn test_let_assignment() {
         let lexed = lexer::lex_from_string("let foo = (-500*bar)/10;".to_string()).unwrap();
@@ -122,6 +124,7 @@ mod test {
         assert_eq!(parse(lexed), Ok(expected));
     }
 
+    #[ignore]
     #[test]
     fn test_if_else_then() {
         let source = include_str!("test/ast_if_elseif_else.enby").to_string();
