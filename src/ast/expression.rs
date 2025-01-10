@@ -1,5 +1,5 @@
 use crate::ast::operator::OperatorType::{Addition, Division, Equality, Modulus, Multiplication, Subtraction};
-use crate::ast::AstElement::{NumberLiteral, UnaryOperator};
+use crate::ast::AstElement::{NumberLiteral, StringLiteral, Symbol, UnaryOperator};
 use crate::ast::{util, AstElement};
 use crate::lexer::{Token, TokenType};
 use std::collections::VecDeque;
@@ -69,7 +69,7 @@ fn unary(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
     if let Some(operator) = util::match_operator(tokens, [Subtraction]) {
         return Ok(UnaryOperator {
             operator,
-            operand: Box::new(unary(tokens)?)
+            operand: Box::new(unary(tokens)?),
         });
     }
 
@@ -79,18 +79,53 @@ fn unary(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
 fn primary(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
     if let Some(next_token) = tokens.pop_front() {
         if next_token.token_type == TokenType::Number {
-            return Ok(NumberLiteral { value: next_token.contents })
+            return Ok(NumberLiteral { value: next_token.contents });
+        }
+        if next_token.token_type == TokenType::StringLiteral {
+            return Ok(StringLiteral { value: next_token.contents });
         }
         if next_token.token_type == TokenType::Symbol {
-            return Ok(NumberLiteral { value: next_token.contents })
+            return Ok(Symbol { name: next_token.contents });
         }
-        if next_token.token_type == TokenType::Symbol && next_token.contents == "(" {
+        if next_token.token_type == TokenType::Special && next_token.contents == "(" {
             let expression = expression(tokens)?;
-            if !util::match_special(tokens, ")") { 
-                return Err("Expected parenthesis close ')'".to_string())
+            if !util::match_special(tokens, ")") {
+                return Err("Expected parenthesis close ')'".to_string());
             }
-            return Ok(expression)
+            return Ok(expression);
         }
+
+        return Err(format!("Unexpected end of expression {}", next_token.contents))
     }
     Err("Unexpected end of expression".to_string())
+}
+
+#[cfg(test)]
+mod test {
+    use crate::ast::expression;
+    use crate::ast::operator::OperatorType;
+    use crate::ast::operator::OperatorType::{Division, Multiplication};
+    use crate::ast::AstElement::{BiOperator, NumberLiteral, Symbol, UnaryOperator};
+    use crate::lexer;
+    use crate::lexer::Token;
+    use std::collections::VecDeque;
+
+    #[test]
+    fn parenthesis_division_test() {
+        let lexed = lexer::lex_from_string("(-500*bar)/10".to_string()).unwrap().into_iter().flatten().collect::<VecDeque<Token>>();
+        let expected = BiOperator {
+            operator: Division,
+            left: Box::new(BiOperator {
+                operator: Multiplication,
+                left: Box::new(UnaryOperator {
+                    operator: OperatorType::Subtraction,
+                    operand: Box::new(NumberLiteral { value: "500".to_string() }),
+                }),
+                right: Box::new(Symbol { name: "bar".to_string() }),
+            }),
+            right: Box::new(NumberLiteral { value: "10".to_string() }),
+        };
+
+        assert_eq!(expression::parse(VecDeque::from(lexed)), Ok(expected));
+    }
 }
