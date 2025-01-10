@@ -22,19 +22,3 @@ pub(super) fn parse(str: &str) -> Option<OperatorType> {
         _ => None?
     })
 }
-
-impl OperatorType {
-    fn get_precedence(&self) -> u8 {
-        match self {
-            OperatorType::Equality => 2,
-
-            OperatorType::Multiplication => 1,
-            OperatorType::Division => 1,
-            OperatorType::Modulus => 1,
-
-            OperatorType::Addition => 0,
-            OperatorType::Subtraction => 0
-        }
-    }
-}
-

@@ -1,18 +1,21 @@
 pub mod operator;
-mod statement;
+mod expression;
+mod util;
 
+use std::collections::VecDeque;
 use crate::ast::AstElement::*;
 use crate::lexer::{Token, TokenType};
 use operator::OperatorType;
 
 #[derive(PartialEq, Debug)]
 pub enum AstElement {
-    Let { name: String, statement: Box<AstElement> },
-    Reassignment { name: String, statement: Box<AstElement> },
+    Let { name: String, expression: Box<AstElement> },
+    Reassignment { name: String, expression: Box<AstElement> },
     If { condition: Box<AstElement>, then: Vec<AstElement>, other_blocks: Vec<AstElement> },
     ElseIf { condition: Box<AstElement>, then: Vec<AstElement> },
     Else { then: Vec<AstElement> },
-    BiOperator { bi_operator_type: OperatorType, left: Box<AstElement>, right: Box<AstElement> },
+    BiOperator { operator: OperatorType, left: Box<AstElement>, right: Box<AstElement> },
+    UnaryOperator { operator: OperatorType, operand: Box<AstElement> },
     NumberLiteral { value: String },
     StringLiteral { value: String },
     FunctionCall { name: String, arguments: Vec<AstElement> },
@@ -38,7 +41,7 @@ pub fn parse(tokens: Vec<Vec<Token>>) -> Result<Vec<AstElement>, String> {
 
 fn parse_let(remaining_tokens: &mut Vec<Token>) -> Result<AstElement, String> {
     let semicolon = remaining_tokens.iter().enumerate()
-        .find(|(_, t)| t.token_type == TokenType::Symbol && t.contents == ";");
+        .find(|(_, t)| t.token_type == TokenType::Special && t.contents == ";");
 
     let semicolon_index = match semicolon {
         // TODO: Add line number to token
@@ -46,9 +49,9 @@ fn parse_let(remaining_tokens: &mut Vec<Token>) -> Result<AstElement, String> {
         Some((i, _)) => i
     };
 
-    let mut tokens = remaining_tokens.drain(0..semicolon_index).collect::<Vec<Token>>();
-    tokens.pop().unwrap(); // Let token that we already matched
-    let symbol_name = match tokens.pop() {
+    let mut tokens = remaining_tokens.drain(0..semicolon_index).collect::<VecDeque<Token>>();
+    tokens.pop_front().unwrap(); // Let token that we already matched
+    let symbol_name = match tokens.pop_front() {
         None => return Err("Expected variable name".to_string()),
         Some(t) => if t.token_type == TokenType::Symbol { 
             t.contents.to_string() 
@@ -57,12 +60,12 @@ fn parse_let(remaining_tokens: &mut Vec<Token>) -> Result<AstElement, String> {
         }
     };
     
-    if tokens.pop() != Some(Token { token_type: TokenType::Special, contents: "=".to_string() }) {
+    if tokens.pop_front() != Some(Token { token_type: TokenType::Special, contents: "=".to_string() }) {
         return Err("Expected equals sign".to_string())
     }
     
-    let statement = statement::parse(tokens)?;
-    Ok(Let { name: symbol_name, statement: Box::new(statement) })
+    let expression = expression::parse(tokens)?;
+    Ok(Let { name: symbol_name, expression: Box::new(expression) })
 }
 
 fn parse_reassignment() -> Result<AstElement, String> {
@@ -87,7 +90,7 @@ mod test {
         let expected = vec![
             Reassignment {
                 name: "foo".to_string(),
-                statement: Box::new(
+                expression: Box::new(
                     NumberLiteral { value: "-5".to_string() }
                 )
             },
@@ -102,11 +105,11 @@ mod test {
         let expected = vec![
             Let {
                 name: "foo".to_string(),
-                statement: Box::new(
+                expression: Box::new(
                     BiOperator {
-                        bi_operator_type: Division,
+                        operator: Division,
                         left: Box::new(BiOperator {
-                            bi_operator_type: Multiplication,
+                            operator: Multiplication,
                             left: Box::new(NumberLiteral { value: "-500".to_string() }),
                             right: Box::new(Symbol { name: "bar".to_string() })
                         }),
