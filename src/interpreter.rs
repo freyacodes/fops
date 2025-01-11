@@ -9,7 +9,17 @@ pub enum RuntimeValue {
     Boolean(bool)
 }
 
-fn evaluate_expression(element: &AstElement) -> Result<RuntimeValue, String> {
+impl RuntimeValue {
+    pub fn value_as_string(&self) -> String {
+        match self {
+            RuntimeValue::String(string) => string.to_string(),
+            RuntimeValue::Integer(int) => int.to_string(),
+            RuntimeValue::Boolean(bool) => bool.to_string()
+        }
+    }
+}
+
+pub fn evaluate_expression(element: &AstElement) -> Result<RuntimeValue, String> {
     Ok(match element {
         AstElement::Let { .. } => panic!("Not intended to be used here"),
         AstElement::Reassignment { .. } => panic!("Not intended to be used here"),
