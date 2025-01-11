@@ -63,14 +63,25 @@ pub fn evaluate_expression(element: &AstElement) -> Result<RuntimeValue, String>
                     let (l, r) = match_two_integers(&left_value, &right_value)?;
                     RuntimeValue::Integer(l - r)
                 }
+                OperatorType::Bang => unreachable!()
             }
         },
         AstElement::UnaryOperator { operator, operand } => {
-            if operator != &OperatorType::Minus { panic!("Unexpected operator {}", operator) }
             let operand_value = evaluate_expression(operand)?;
-            match operand_value {
-                RuntimeValue::Integer(i) => RuntimeValue::Integer(-i),
-                _ => return error_expected_integer(&operand_value)
+            match operator {
+                OperatorType::Minus => {
+                    match operand_value {
+                        RuntimeValue::Integer(i) => RuntimeValue::Integer(-i),
+                        _ => return error_expected_integer(&operand_value)
+                    }
+                },
+                OperatorType::Bang => {
+                    match operand_value {
+                        RuntimeValue::Boolean(b) => RuntimeValue::Boolean(!b),
+                        _ => return error_expected_boolean(&operand_value)
+                    }
+                },
+                _ => panic!("Unexpected operator {}", operator)
             }
         },
         AstElement::NumberLiteral { value } => {
@@ -99,6 +110,10 @@ fn match_two_integers(left: &RuntimeValue, right: &RuntimeValue) -> Result<(i32,
 
 fn error_expected_integer(value: &RuntimeValue) -> Result<RuntimeValue, String> {
     Err(format!("Expected an integer, got {:?}", value))
+}
+
+fn error_expected_boolean(value: &RuntimeValue) -> Result<RuntimeValue, String> {
+    Err(format!("Expected a boolean, got {:?}", value))
 }
 
 #[cfg(test)]

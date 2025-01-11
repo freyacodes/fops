@@ -3,6 +3,7 @@ use std::fmt;
 #[derive(PartialEq, Debug)]
 pub enum OperatorType {
     Equality,
+    Bang,
     Multiplication,
     Division,
     Modulus,
@@ -13,6 +14,7 @@ pub enum OperatorType {
 pub(super) fn parse(str: &str) -> Option<OperatorType> {
     Some(match str {
         "==" => OperatorType::Equality,
+        "!" => OperatorType::Bang,
 
         "*" => OperatorType::Multiplication,
         "/" => OperatorType::Division,

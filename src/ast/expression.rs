@@ -1,4 +1,4 @@
-use crate::ast::operator::OperatorType::{Plus, Division, Equality, Modulus, Multiplication, Minus};
+use crate::ast::operator::OperatorType::{Plus, Division, Equality, Modulus, Multiplication, Minus, Bang};
 use crate::ast::AstElement::{BooleanLiteral, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
 use crate::ast::{util, AstElement};
 use crate::lexer::{Token, TokenType};
@@ -66,7 +66,7 @@ fn factor(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
 }
 
 fn unary(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
-    if let Some(operator) = util::match_operator(tokens, [Minus]) {
+    if let Some(operator) = util::match_operator(tokens, [Minus, Bang]) {
         return Ok(UnaryOperator {
             operator,
             operand: Box::new(unary(tokens)?),
