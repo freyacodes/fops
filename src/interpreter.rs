@@ -72,8 +72,8 @@ pub fn evaluate_expression(element: &AstElement) -> Result<RuntimeValue, String>
             }
         },
         AstElement::StringLiteral { value } => RuntimeValue::String(value.clone()),
-        AstElement::FunctionCall { name, arguments } => todo!("Functions are not a thing yet"),
-        AstElement::Symbol { name } => todo!("Not implemented until variables are added")
+        AstElement::FunctionCall { .. } => todo!("Functions are not a thing yet"),
+        AstElement::Symbol { .. } => todo!("Not implemented until variables are added")
     })
 }
 
@@ -130,10 +130,26 @@ mod test {
     }
 
     #[test]
-    fn test_string_concatenation() {
+    fn test_string_string_concatenation() {
         assert_eq!(
             evaluate_expression(&parse_single("\"foo\" + \"bar\"".to_string())).unwrap(),
             RuntimeValue::String("foobar".to_string())
+        );
+    }
+
+    #[test]
+    fn test_string_int_concatenation() {
+        assert_eq!(
+            evaluate_expression(&parse_single("\"foo\" + 5".to_string())).unwrap(),
+            RuntimeValue::String("foo5".to_string())
+        );
+    }
+
+    #[test]
+    fn test_string_bolean_concatenation() {
+        assert_eq!(
+            evaluate_expression(&parse_single("\"foo\" + false".to_string())).unwrap(),
+            RuntimeValue::String("foofalse".to_string())
         );
     }
 }
