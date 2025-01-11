@@ -4,7 +4,7 @@ use crate::ast::{util, AstElement};
 use crate::lexer::{Token, TokenType};
 use std::collections::VecDeque;
 
-pub(super) fn parse(mut tokens: VecDeque<Token>) -> Result<AstElement, String> {
+pub fn parse(mut tokens: VecDeque<Token>) -> Result<AstElement, String> {
     expression(&mut tokens)
 }
 

@@ -1,9 +1,8 @@
-use std::cmp::PartialEq;
-use std::fmt::{format, Display, Formatter};
-use crate::ast::AstElement;
 use crate::ast::operator::OperatorType;
+use crate::ast::AstElement;
+use std::cmp::PartialEq;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum RuntimeValue {
     String(String),
     Integer(i32),
@@ -21,7 +20,7 @@ fn evaluate_expression(element: &AstElement) -> Result<RuntimeValue, String> {
         AstElement::UnaryOperator { operator, operand } => {
             if operator != &OperatorType::Subtraction { panic!("Unexpected operator {}", operator) }
             let operand_value = evaluate_expression(operand)?;
-            match operand_value { 
+            match operand_value {
                 RuntimeValue::Integer(i) => RuntimeValue::Integer(-i),
                 _ => return error_expected_integer(&operand_value)
             }
@@ -41,4 +40,25 @@ fn evaluate_expression(element: &AstElement) -> Result<RuntimeValue, String> {
 
 fn error_expected_integer(value: &RuntimeValue) -> Result<RuntimeValue, String> {
     Err(format!("Expected an integer, got {:?}", value))
+}
+
+#[cfg(test)]
+mod test {
+    use std::collections::VecDeque;
+    use crate::ast::AstElement;
+    use crate::interpreter::evaluate_expression;
+    use crate::interpreter::RuntimeValue::Integer;
+    use crate::{ast, lexer};
+    use crate::lexer::Token;
+
+    fn parse_single(string: String) -> AstElement {
+        let lexed = lexer::lex_from_string(string).unwrap().into_iter().flatten().collect::<VecDeque<Token>>();
+        ast::expression::parse(lexed).expect("Parsing failed")
+    }
+    
+    #[test]
+    fn test_unary() {
+        assert_eq!(evaluate_expression(&parse_single("-40".to_string())).unwrap(), Integer(-40));
+        assert_eq!(evaluate_expression(&parse_single("--40".to_string())).unwrap(), Integer(40));
+    }
 }

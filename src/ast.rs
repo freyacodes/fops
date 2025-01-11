@@ -1,5 +1,5 @@
 pub mod operator;
-mod expression;
+pub(crate) mod expression;
 mod util;
 
 use std::collections::VecDeque;
