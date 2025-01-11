@@ -81,6 +81,7 @@ pub fn evaluate_expression(element: &AstElement) -> Result<RuntimeValue, String>
             }
         },
         AstElement::StringLiteral { value } => RuntimeValue::String(value.clone()),
+        AstElement::BooleanLiteral { value } => RuntimeValue::Boolean(*value),
         AstElement::FunctionCall { .. } => todo!("Functions are not a thing yet"),
         AstElement::Symbol { .. } => todo!("Not implemented until variables are added")
     })

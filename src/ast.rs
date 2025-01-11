@@ -15,6 +15,7 @@ pub enum AstElement {
     UnaryOperator { operator: OperatorType, operand: Box<AstElement> },
     NumberLiteral { value: String },
     StringLiteral { value: String },
+    BooleanLiteral { value: bool },
     FunctionCall { name: String, arguments: Vec<AstElement> },
     Symbol { name: String },
 }

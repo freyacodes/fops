@@ -1,5 +1,5 @@
 use crate::ast::operator::OperatorType::{Plus, Division, Equality, Modulus, Multiplication, Minus};
-use crate::ast::AstElement::{NumberLiteral, StringLiteral, Symbol, UnaryOperator};
+use crate::ast::AstElement::{BooleanLiteral, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
 use crate::ast::{util, AstElement};
 use crate::lexer::{Token, TokenType};
 use std::collections::VecDeque;
@@ -89,7 +89,11 @@ fn primary(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
             });
         }
         if next_token.token_type == TokenType::Symbol {
-            return Ok(Symbol { name: next_token.contents });
+            return match next_token.contents.as_str() {
+                "true" => Ok(BooleanLiteral { value: true }),
+                "false" => Ok(BooleanLiteral { value: false }),
+                _ => Ok(Symbol { name: next_token.contents })
+            };
         }
         if next_token.token_type == TokenType::Special && next_token.contents == "(" {
             let expression = expression(tokens)?;
