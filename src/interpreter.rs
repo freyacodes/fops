@@ -26,7 +26,34 @@ pub fn evaluate_expression(element: &AstElement) -> Result<RuntimeValue, String>
         AstElement::If { .. } => panic!("Not intended to be used here"),
         AstElement::ElseIf { .. } => panic!("Not intended to be used here"),
         AstElement::Else { .. } => panic!("Not intended to be used here"),
-        AstElement::BiOperator { operator, left, right } => todo!(),
+        AstElement::BiOperator { operator, left, right } => {
+            let left_value = evaluate_expression(left)?;
+            let right_value = evaluate_expression(right)?;
+            
+            match operator {
+                OperatorType::Equality => todo!(),
+                OperatorType::Multiplication => {
+                    let (l, r) = match_two_integers(&left_value, &right_value)?;
+                    RuntimeValue::Integer(l * r)
+                },
+                OperatorType::Division => {
+                    let (l, r) = match_two_integers(&left_value, &right_value)?;
+                    RuntimeValue::Integer(l / r)
+                },
+                OperatorType::Modulus => {
+                    let (l, r) = match_two_integers(&left_value, &right_value)?;
+                    RuntimeValue::Integer(l % r)
+                },
+                OperatorType::Addition => {
+                    let (l, r) = match_two_integers(&left_value, &right_value)?;
+                    RuntimeValue::Integer(l + r)
+                }
+                OperatorType::Subtraction => {
+                    let (l, r) = match_two_integers(&left_value, &right_value)?;
+                    RuntimeValue::Integer(l - r)
+                }
+            }
+        },
         AstElement::UnaryOperator { operator, operand } => {
             if operator != &OperatorType::Subtraction { panic!("Unexpected operator {}", operator) }
             let operand_value = evaluate_expression(operand)?;
@@ -46,6 +73,16 @@ pub fn evaluate_expression(element: &AstElement) -> Result<RuntimeValue, String>
         AstElement::FunctionCall { name, arguments } => todo!("Functions are not a thing yet"),
         AstElement::Symbol { name } => todo!("Not implemented until variables are added")
     })
+}
+
+fn match_two_integers(left: &RuntimeValue, right: &RuntimeValue) -> Result<(i32, i32), String> {
+    if let RuntimeValue::Integer(l) = left {
+        if let RuntimeValue::Integer(r) = right {
+            return Ok((*l, *r))
+        }
+    }
+    
+    Err(format!("Expected two integers, got {:?} and {:?}", left, right))
 }
 
 fn error_expected_integer(value: &RuntimeValue) -> Result<RuntimeValue, String> {
