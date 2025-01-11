@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::Path;
 
-const SPECIAL_CHARACTERS: [char; 10] = ['+', '-', '*', '/', '=', '(', ')', '{', '}', ';'];
-const MULTICHAR_OPERATORS: [char; 1] = ['='];
+const SPECIAL_CHARACTERS: [char; 11] = ['+', '-', '*', '/', '!', '=', '(', ')', '{', '}', ';'];
+const MULTICHAR_OPERATORS: [char; 2] = ['=', '!'];
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum TokenType {
@@ -99,19 +99,19 @@ fn lex_line(line: &str, line_index: usize) -> Result<Vec<Token>, String> {
         match token_type {
             TokenType::Symbol => {
                 if !c.is_ascii_alphanumeric() {
-                    return Err(format!("Unexpected character '{}' at {}:{}", c, line_index + 1, col + 1));
+                    return Err(format!("Unexpected character '{}' at {}:{} when reading symbol", c, line_index + 1, col + 1));
                 }
                 buffer.push(c);
             }
             TokenType::Number => {
                 if !c.is_ascii_digit() {
-                    return Err(format!("Unexpected character '{}' at {}:{}", c, line_index + 1, col + 1));
+                    return Err(format!("Unexpected character '{}' at {}:{} when reading number", c, line_index + 1, col + 1));
                 }
                 buffer.push(c);
             }
             TokenType::Special => {
                 if !SPECIAL_CHARACTERS.contains(&c) {
-                    return Err(format!("Unexpected character '{}' at {}:{}", c, line_index + 1, col + 1));
+                    return Err(format!("Unexpected character '{}' at {}:{} when reading control characters", c, line_index + 1, col + 1));
                 }
                 buffer.push(c);
             }
@@ -165,7 +165,7 @@ mod test {
     }
 
     #[test]
-    fn test_equality() {
+    fn test_if_equality() {
         let line = "if foo==500{";
         let expected = vec![
             Token { token_type: Symbol, contents: "if".to_string() },
@@ -173,6 +173,18 @@ mod test {
             Token { token_type: Special, contents: "==".to_string() },
             Token { token_type: Number, contents: "500".to_string() },
             Token { token_type: Special, contents: "{".to_string() },
+        ];
+
+        assert_eq!(lex_line(&String::from(line), 0).unwrap(), expected);
+    }
+
+    #[test]
+    fn test_inequality() {
+        let line = "foo!=500";
+        let expected = vec![
+            Token { token_type: Symbol, contents: "foo".to_string() },
+            Token { token_type: Special, contents: "!=".to_string() },
+            Token { token_type: Number, contents: "500".to_string() },
         ];
 
         assert_eq!(lex_line(&String::from(line), 0).unwrap(), expected);
