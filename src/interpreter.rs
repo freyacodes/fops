@@ -31,7 +31,9 @@ pub fn evaluate_expression(element: &AstElement) -> Result<RuntimeValue, String>
             let right_value = evaluate_expression(right)?;
             
             match operator {
-                OperatorType::Equality => todo!(),
+                OperatorType::Equality => {
+                    RuntimeValue::Boolean(left_value == right_value)
+                },
                 OperatorType::Multiplication => {
                     let (l, r) = match_two_integers(&left_value, &right_value)?;
                     RuntimeValue::Integer(l * r)
@@ -124,6 +126,7 @@ mod test {
     fn test_integer_equality() {
         assert_eq!(evaluate_expression(&parse_single("5 == 2 + 3".to_string())).unwrap(), Boolean(true));
         assert_eq!(evaluate_expression(&parse_single("6 == 2 + 3".to_string())).unwrap(), Boolean(false));
+        assert_eq!(evaluate_expression(&parse_single("6 == \"foo\"".to_string())).unwrap(), Boolean(false));
     }
 
     #[test]
