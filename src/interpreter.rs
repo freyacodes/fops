@@ -133,10 +133,23 @@ mod test {
     }
 
     #[test]
-    fn test_integer_equality() {
+    fn test_equality() {
         assert_eq!(evaluate_expression(&parse_single("5 == 2 + 3".to_string())).unwrap(), Boolean(true));
         assert_eq!(evaluate_expression(&parse_single("6 == 2 + 3".to_string())).unwrap(), Boolean(false));
         assert_eq!(evaluate_expression(&parse_single("6 == \"foo\"".to_string())).unwrap(), Boolean(false));
+    }
+
+    #[test]
+    fn test_inequality() {
+        assert_eq!(evaluate_expression(&parse_single("5 != 2 + 3".to_string())).unwrap(), Boolean(false));
+        assert_eq!(evaluate_expression(&parse_single("6 != 2 + 3".to_string())).unwrap(), Boolean(true));
+        assert_eq!(evaluate_expression(&parse_single("6 != \"foo\"".to_string())).unwrap(), Boolean(true));
+    }
+
+    #[test]
+    fn test_not_operator() {
+        assert_eq!(evaluate_expression(&parse_single("!true".to_string())).unwrap(), Boolean(false));
+        assert_eq!(evaluate_expression(&parse_single("!false".to_string())).unwrap(), Boolean(true));
     }
 
     #[test]
@@ -156,7 +169,7 @@ mod test {
     }
 
     #[test]
-    fn test_string_bolean_concatenation() {
+    fn test_string_boolean_concatenation() {
         assert_eq!(
             evaluate_expression(&parse_single("\"foo\" + false".to_string())).unwrap(),
             RuntimeValue::String("foofalse".to_string())
