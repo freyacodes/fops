@@ -2,9 +2,6 @@ pub mod operator;
 pub(crate) mod expression;
 mod util;
 
-use std::collections::VecDeque;
-use crate::ast::AstElement::*;
-use crate::lexer::{Token, TokenType};
 use operator::OperatorType;
 
 #[derive(PartialEq, Debug)]
@@ -22,6 +19,7 @@ pub enum AstElement {
     Symbol { name: String },
 }
 
+/*
 pub fn parse(tokens: Vec<Vec<Token>>) -> Result<Vec<AstElement>, String> {
     let mut remaining_tokens = tokens.into_iter().flatten().collect::<Vec<Token>>();
     let mut elements: Vec<AstElement> = Vec::new();
@@ -164,3 +162,4 @@ mod test {
         assert_eq!(parse(lexed), Ok(expected));
     }
 }
+*/

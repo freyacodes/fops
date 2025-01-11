@@ -1,9 +1,7 @@
+use crate::lexer::Token;
 use std::collections::VecDeque;
 use std::io;
 use std::io::Write;
-use std::path::Path;
-use crate::interpreter::RuntimeValue;
-use crate::lexer::Token;
 
 mod lexer;
 mod ast;
