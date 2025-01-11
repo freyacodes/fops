@@ -2,6 +2,7 @@ use std::path::Path;
 
 mod lexer;
 mod ast;
+mod interpreter;
 
 fn main() {
     let tokens = lexer::lex_from_file(Box::from(Path::new("enby.nb"))).unwrap();
