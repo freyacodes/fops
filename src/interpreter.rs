@@ -46,18 +46,27 @@ pub fn evaluate_expression(element: &AstElement) -> Result<RuntimeValue, String>
                     let (l, r) = match_two_integers(&left_value, &right_value)?;
                     RuntimeValue::Integer(l % r)
                 },
-                OperatorType::Addition => {
-                    let (l, r) = match_two_integers(&left_value, &right_value)?;
-                    RuntimeValue::Integer(l + r)
+                OperatorType::Plus => {
+                    if let RuntimeValue::Integer(l) = left_value {
+                        if let RuntimeValue::Integer(r) = right_value {
+                            return Ok(RuntimeValue::Integer(l + r))
+                        }
+                    }
+
+                    RuntimeValue::String(format!(
+                        "{}{}",
+                        left_value.value_as_string(), 
+                        right_value.value_as_string())
+                    )
                 }
-                OperatorType::Subtraction => {
+                OperatorType::Minus => {
                     let (l, r) = match_two_integers(&left_value, &right_value)?;
                     RuntimeValue::Integer(l - r)
                 }
             }
         },
         AstElement::UnaryOperator { operator, operand } => {
-            if operator != &OperatorType::Subtraction { panic!("Unexpected operator {}", operator) }
+            if operator != &OperatorType::Minus { panic!("Unexpected operator {}", operator) }
             let operand_value = evaluate_expression(operand)?;
             match operand_value {
                 RuntimeValue::Integer(i) => RuntimeValue::Integer(-i),

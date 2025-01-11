@@ -1,4 +1,4 @@
-use crate::ast::operator::OperatorType::{Addition, Division, Equality, Modulus, Multiplication, Subtraction};
+use crate::ast::operator::OperatorType::{Plus, Division, Equality, Modulus, Multiplication, Minus};
 use crate::ast::AstElement::{NumberLiteral, StringLiteral, Symbol, UnaryOperator};
 use crate::ast::{util, AstElement};
 use crate::lexer::{Token, TokenType};
@@ -37,7 +37,7 @@ fn term(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
     let mut expression = factor(tokens)?;
 
     loop {
-        if let Some(operator) = util::match_operator(tokens, [Addition, Subtraction]) {
+        if let Some(operator) = util::match_operator(tokens, [Plus, Minus]) {
             expression = AstElement::BiOperator {
                 operator,
                 left: Box::new(expression),
@@ -66,7 +66,7 @@ fn factor(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
 }
 
 fn unary(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
-    if let Some(operator) = util::match_operator(tokens, [Subtraction]) {
+    if let Some(operator) = util::match_operator(tokens, [Minus]) {
         return Ok(UnaryOperator {
             operator,
             operand: Box::new(unary(tokens)?),
@@ -82,7 +82,11 @@ fn primary(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
             return Ok(NumberLiteral { value: next_token.contents });
         }
         if next_token.token_type == TokenType::StringLiteral {
-            return Ok(StringLiteral { value: next_token.contents });
+            let len = next_token.contents.len();
+            return Ok(StringLiteral { 
+                // Remove the quotes
+                value: next_token.contents.chars().skip(1).take(len-2).collect() 
+            });
         }
         if next_token.token_type == TokenType::Symbol {
             return Ok(Symbol { name: next_token.contents });
@@ -118,7 +122,7 @@ mod test {
             left: Box::new(BiOperator {
                 operator: Multiplication,
                 left: Box::new(UnaryOperator {
-                    operator: OperatorType::Subtraction,
+                    operator: OperatorType::Minus,
                     operand: Box::new(NumberLiteral { value: "500".to_string() }),
                 }),
                 right: Box::new(Symbol { name: "bar".to_string() }),

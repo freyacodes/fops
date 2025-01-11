@@ -6,8 +6,8 @@ pub enum OperatorType {
     Multiplication,
     Division,
     Modulus,
-    Addition,
-    Subtraction,
+    Plus,
+    Minus,
 }
 
 pub(super) fn parse(str: &str) -> Option<OperatorType> {
@@ -18,8 +18,8 @@ pub(super) fn parse(str: &str) -> Option<OperatorType> {
         "/" => OperatorType::Division,
         "%" => OperatorType::Modulus,
 
-        "+" => OperatorType::Addition,
-        "-" => OperatorType::Subtraction,
+        "+" => OperatorType::Plus,
+        "-" => OperatorType::Minus,
 
         _ => None?
     })
