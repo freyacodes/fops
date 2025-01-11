@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-const SPECIAL_CHARACTERS: [char; 11] = ['+', '-', '*', '/', '!', '=', '(', ')', '{', '}', ';'];
+const CONTROL_CHARACTERS: [char; 11] = ['+', '-', '*', '/', '!', '=', '(', ')', '{', '}', ';'];
 const MULTICHAR_OPERATORS: [char; 2] = ['=', '!'];
 
 #[derive(PartialEq, Copy, Clone, Debug)]
@@ -9,7 +9,7 @@ pub enum TokenType {
     None,
     Symbol,
     Number,
-    Special,
+    Control,
     StringLiteral,
 }
 
@@ -71,13 +71,13 @@ fn lex_line(line: &str, line_index: usize) -> Result<Vec<Token>, String> {
             continue;
         }
 
-        let is_special_after_non_special = token_type != TokenType::Special && SPECIAL_CHARACTERS.contains(&c);
+        let is_special_after_non_special = token_type != TokenType::Control && CONTROL_CHARACTERS.contains(&c);
         if is_special_after_non_special {
             // Terminate the last token, and proceed with handling this special character
             terminate_token(&mut buffer, &mut tokens, &mut token_type);
         }
         
-        let is_new_token_after_special = token_type == TokenType::Special && !SPECIAL_CHARACTERS.contains(&c);
+        let is_new_token_after_special = token_type == TokenType::Control && !CONTROL_CHARACTERS.contains(&c);
         if  token_type == TokenType::None || is_new_token_after_special {
             terminate_token(&mut buffer, &mut tokens, &mut token_type);
             buffer.push(c);
@@ -87,8 +87,8 @@ fn lex_line(line: &str, line_index: usize) -> Result<Vec<Token>, String> {
                 token_type = TokenType::Number;
             } else if c == '"' {
                 token_type = TokenType::StringLiteral;
-            } else if SPECIAL_CHARACTERS.contains(&c) {
-                token_type = TokenType::Special;
+            } else if CONTROL_CHARACTERS.contains(&c) {
+                token_type = TokenType::Control;
                 if !MULTICHAR_OPERATORS.contains(&c) {
                     terminate_token(&mut buffer, &mut tokens, &mut token_type);
                 }
@@ -109,8 +109,8 @@ fn lex_line(line: &str, line_index: usize) -> Result<Vec<Token>, String> {
                 }
                 buffer.push(c);
             }
-            TokenType::Special => {
-                if !SPECIAL_CHARACTERS.contains(&c) {
+            TokenType::Control => {
+                if !CONTROL_CHARACTERS.contains(&c) {
                     return Err(format!("Unexpected character '{}' at {}:{} when reading control characters", c, line_index + 1, col + 1));
                 }
                 buffer.push(c);
@@ -127,7 +127,7 @@ fn lex_line(line: &str, line_index: usize) -> Result<Vec<Token>, String> {
 #[cfg(test)]
 mod test {
     use crate::lexer::{lex_line, Token};
-    use crate::lexer::TokenType::{Number, Special, StringLiteral, Symbol};
+    use crate::lexer::TokenType::{Number, Control, StringLiteral, Symbol};
 
     #[test]
     fn test_string_assignment() {
@@ -135,9 +135,9 @@ mod test {
         let expected = vec![
             Token { token_type: Symbol, contents: "let".to_string() },
             Token { token_type: Symbol, contents: "foo".to_string() },
-            Token { token_type: Special, contents: "=".to_string() },
+            Token { token_type: Control, contents: "=".to_string() },
             Token { token_type: StringLiteral, contents: "\"bar\"".to_string() },
-            Token { token_type: Special, contents: ";".to_string() },
+            Token { token_type: Control, contents: ";".to_string() },
         ];
         
         assert_eq!(lex_line(&String::from(line), 0).unwrap(), expected);
@@ -149,16 +149,16 @@ mod test {
         let expected = vec![
             Token { token_type: Symbol, contents: "let".to_string() },
             Token { token_type: Symbol, contents: "foo".to_string() },
-            Token { token_type: Special, contents: "=".to_string() },
-            Token { token_type: Special, contents: "(".to_string() },
-            Token { token_type: Special, contents: "-".to_string() },
+            Token { token_type: Control, contents: "=".to_string() },
+            Token { token_type: Control, contents: "(".to_string() },
+            Token { token_type: Control, contents: "-".to_string() },
             Token { token_type: Number, contents: "500".to_string() },
-            Token { token_type: Special, contents: "*".to_string() },
+            Token { token_type: Control, contents: "*".to_string() },
             Token { token_type: Symbol, contents: "bar".to_string() },
-            Token { token_type: Special, contents: ")".to_string() },
-            Token { token_type: Special, contents: "/".to_string() },
+            Token { token_type: Control, contents: ")".to_string() },
+            Token { token_type: Control, contents: "/".to_string() },
             Token { token_type: Number, contents: "10".to_string() },
-            Token { token_type: Special, contents: ";".to_string() },
+            Token { token_type: Control, contents: ";".to_string() },
         ];
 
         assert_eq!(lex_line(&String::from(line), 0).unwrap(), expected);
@@ -170,9 +170,9 @@ mod test {
         let expected = vec![
             Token { token_type: Symbol, contents: "if".to_string() },
             Token { token_type: Symbol, contents: "foo".to_string() },
-            Token { token_type: Special, contents: "==".to_string() },
+            Token { token_type: Control, contents: "==".to_string() },
             Token { token_type: Number, contents: "500".to_string() },
-            Token { token_type: Special, contents: "{".to_string() },
+            Token { token_type: Control, contents: "{".to_string() },
         ];
 
         assert_eq!(lex_line(&String::from(line), 0).unwrap(), expected);
@@ -183,7 +183,7 @@ mod test {
         let line = "foo!=500";
         let expected = vec![
             Token { token_type: Symbol, contents: "foo".to_string() },
-            Token { token_type: Special, contents: "!=".to_string() },
+            Token { token_type: Control, contents: "!=".to_string() },
             Token { token_type: Number, contents: "500".to_string() },
         ];
 

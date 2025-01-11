@@ -95,7 +95,7 @@ fn primary(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
                 _ => Ok(Symbol { name: next_token.contents })
             };
         }
-        if next_token.token_type == TokenType::Special && next_token.contents == "(" {
+        if next_token.token_type == TokenType::Control && next_token.contents == "(" {
             let expression = expression(tokens)?;
             if !util::match_special(tokens, ")") {
                 return Err("Expected parenthesis close ')'".to_string());
