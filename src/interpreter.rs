@@ -93,8 +93,8 @@ fn error_expected_integer(value: &RuntimeValue) -> Result<RuntimeValue, String> 
 mod test {
     use std::collections::VecDeque;
     use crate::ast::AstElement;
-    use crate::interpreter::evaluate_expression;
-    use crate::interpreter::RuntimeValue::Integer;
+    use crate::interpreter::{evaluate_expression, RuntimeValue};
+    use crate::interpreter::RuntimeValue::{Boolean, Integer};
     use crate::{ast, lexer};
     use crate::lexer::Token;
 
@@ -107,5 +107,30 @@ mod test {
     fn test_unary() {
         assert_eq!(evaluate_expression(&parse_single("-40".to_string())).unwrap(), Integer(-40));
         assert_eq!(evaluate_expression(&parse_single("--40".to_string())).unwrap(), Integer(40));
+    }
+
+    #[test]
+    fn test_addition() {
+        assert_eq!(evaluate_expression(&parse_single("5 + 2".to_string())).unwrap(), Integer(7));
+    }
+
+    #[test]
+    fn test_division() {
+        assert_eq!(evaluate_expression(&parse_single("7 / 2".to_string())).unwrap(), Integer(3));
+        assert_eq!(evaluate_expression(&parse_single("7 / -2".to_string())).unwrap(), Integer(-3));
+    }
+
+    #[test]
+    fn test_integer_equality() {
+        assert_eq!(evaluate_expression(&parse_single("5 == 2 + 3".to_string())).unwrap(), Boolean(true));
+        assert_eq!(evaluate_expression(&parse_single("6 == 2 + 3".to_string())).unwrap(), Boolean(false));
+    }
+
+    #[test]
+    fn test_string_concatenation() {
+        assert_eq!(
+            evaluate_expression(&parse_single("\"foo\" + \"bar\"".to_string())).unwrap(),
+            RuntimeValue::String("foobar".to_string())
+        );
     }
 }
