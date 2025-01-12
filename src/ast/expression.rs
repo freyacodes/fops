@@ -4,11 +4,7 @@ use crate::ast::{util, AstExpression};
 use crate::lexer::{Token, TokenType};
 use std::collections::VecDeque;
 
-pub fn parse(mut tokens: VecDeque<Token>) -> Result<AstExpression, String> {
-    expression(&mut tokens)
-}
-
-fn expression(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
+pub(super) fn expression(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
     equality(tokens)
 }
 
@@ -121,11 +117,10 @@ fn primary(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
 
 #[cfg(test)]
 mod test {
-    use crate::ast::expression;
     use crate::ast::operator::OperatorType;
     use crate::ast::operator::OperatorType::{Division, Multiplication};
     use crate::ast::AstExpression::{BiOperator, NumberLiteral, Symbol, UnaryOperator};
-    use crate::lexer;
+    use crate::{ast, lexer};
     use std::collections::VecDeque;
 
     #[test]
@@ -144,6 +139,6 @@ mod test {
             right: Box::new(NumberLiteral { value: "10".to_string() }),
         };
 
-        assert_eq!(expression::parse(VecDeque::from(lexed)), Ok(expected));
+        assert_eq!(ast::parse_expression_only(VecDeque::from(lexed)), Ok(expected));
     }
 }

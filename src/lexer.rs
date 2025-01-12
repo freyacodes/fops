@@ -20,6 +20,7 @@ pub struct Token {
     pub contents: String,
 }
 
+#[allow(dead_code)]
 pub fn lex_from_file(file: Box<Path>) -> Result<VecDeque<Token>, String> {
     let file_name = file.file_name()
         .expect("File name does not end in ..")

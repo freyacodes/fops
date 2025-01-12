@@ -25,7 +25,7 @@ fn repl() {
             Err(str) => { println!("Lexer error: {}", str); continue; }
         };
         
-        let expression = match ast::expression::parse(lexed) {
+        let expression = match ast::parse_expression_only(lexed) {
             Ok(expression) => expression,
             Err(str) => { println!("Parser error: {}", str); continue; }
         };

@@ -1,8 +1,11 @@
 pub mod operator;
-pub(crate) mod expression;
+mod expression;
 mod util;
+mod statement;
 
 use operator::OperatorType;
+use std::collections::VecDeque;
+use crate::lexer::Token;
 
 #[derive(PartialEq, Debug)]
 pub enum AstStatement {
@@ -19,6 +22,10 @@ pub enum AstExpression {
     StringLiteral { value: String },
     BooleanLiteral { value: bool },
     Symbol { name: String },
+}
+
+pub fn parse_expression_only(mut tokens: VecDeque<Token>) -> Result<AstExpression, String> {
+    expression::expression(&mut tokens)
 }
 
 /*
