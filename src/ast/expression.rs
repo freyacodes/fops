@@ -1,23 +1,23 @@
 use crate::ast::operator::OperatorType::{Plus, Division, Equality, Modulus, Multiplication, Minus, Bang, Inequality, LessThan, GreaterThan, LessThanOrEqual, GreaterThanOrEqual};
-use crate::ast::AstElement::{BooleanLiteral, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
-use crate::ast::{util, AstElement};
+use crate::ast::AstExpression::{BooleanLiteral, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
+use crate::ast::{util, AstExpression};
 use crate::lexer::{Token, TokenType};
 use std::collections::VecDeque;
 
-pub fn parse(mut tokens: VecDeque<Token>) -> Result<AstElement, String> {
+pub fn parse(mut tokens: VecDeque<Token>) -> Result<AstExpression, String> {
     expression(&mut tokens)
 }
 
-fn expression(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
+fn expression(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
     equality(tokens)
 }
 
-fn equality(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
+fn equality(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
     let mut expression = comparison(tokens)?;
 
     loop {
         if let Some(operator) = util::match_operator(tokens, [Equality, Inequality]) {
-            expression = AstElement::BiOperator {
+            expression = AstExpression::BiOperator {
                 operator,
                 left: Box::new(expression),
                 right: Box::new(comparison(tokens)?),
@@ -28,12 +28,12 @@ fn equality(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
     Ok(expression)
 }
 
-fn comparison(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
+fn comparison(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
     let mut expression = term(tokens)?;
 
     loop {
         if let Some(operator) = util::match_operator(tokens, [LessThan, GreaterThan, LessThanOrEqual, GreaterThanOrEqual]) {
-            expression = AstElement::BiOperator {
+            expression = AstExpression::BiOperator {
                 operator,
                 left: Box::new(expression),
                 right: Box::new(factor(tokens)?),
@@ -44,12 +44,12 @@ fn comparison(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
     Ok(expression)
 }
 
-fn term(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
+fn term(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
     let mut expression = factor(tokens)?;
 
     loop {
         if let Some(operator) = util::match_operator(tokens, [Plus, Minus]) {
-            expression = AstElement::BiOperator {
+            expression = AstExpression::BiOperator {
                 operator,
                 left: Box::new(expression),
                 right: Box::new(factor(tokens)?),
@@ -60,12 +60,12 @@ fn term(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
     Ok(expression)
 }
 
-fn factor(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
+fn factor(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
     let mut expression = unary(tokens)?;
 
     loop {
         if let Some(operator) = util::match_operator(tokens, [Multiplication, Division, Modulus]) {
-            expression = AstElement::BiOperator {
+            expression = AstExpression::BiOperator {
                 operator,
                 left: Box::new(expression),
                 right: Box::new(unary(tokens)?),
@@ -76,7 +76,7 @@ fn factor(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
     Ok(expression)
 }
 
-fn unary(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
+fn unary(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
     if let Some(operator) = util::match_operator(tokens, [Minus, Bang]) {
         return Ok(UnaryOperator {
             operator,
@@ -87,7 +87,7 @@ fn unary(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
     primary(tokens)
 }
 
-fn primary(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
+fn primary(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
     if let Some(next_token) = tokens.pop_front() {
         if next_token.token_type == TokenType::Number {
             return Ok(NumberLiteral { value: next_token.contents });
@@ -124,7 +124,7 @@ mod test {
     use crate::ast::expression;
     use crate::ast::operator::OperatorType;
     use crate::ast::operator::OperatorType::{Division, Multiplication};
-    use crate::ast::AstElement::{BiOperator, NumberLiteral, Symbol, UnaryOperator};
+    use crate::ast::AstExpression::{BiOperator, NumberLiteral, Symbol, UnaryOperator};
     use crate::lexer;
     use crate::lexer::Token;
     use std::collections::VecDeque;

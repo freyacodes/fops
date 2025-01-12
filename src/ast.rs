@@ -5,18 +5,19 @@ mod util;
 use operator::OperatorType;
 
 #[derive(PartialEq, Debug)]
-pub enum AstElement {
-    Let { name: String, expression: Box<AstElement> },
-    Reassignment { name: String, expression: Box<AstElement> },
-    If { condition: Box<AstElement>, then: Vec<AstElement>, other_blocks: Vec<AstElement> },
-    ElseIf { condition: Box<AstElement>, then: Vec<AstElement> },
-    Else { then: Vec<AstElement> },
-    BiOperator { operator: OperatorType, left: Box<AstElement>, right: Box<AstElement> },
-    UnaryOperator { operator: OperatorType, operand: Box<AstElement> },
+pub enum AstStatement {
+    Declaration { name: String, expression: Box<AstExpression> },
+    Assignment { name: String, expression: Box<AstExpression> },
+    FunctionCall { name: String, arguments: Vec<AstExpression> }
+}
+
+#[derive(PartialEq, Debug)]
+pub enum AstExpression {
+    BiOperator { operator: OperatorType, left: Box<AstExpression>, right: Box<AstExpression> },
+    UnaryOperator { operator: OperatorType, operand: Box<AstExpression> },
     NumberLiteral { value: String },
     StringLiteral { value: String },
     BooleanLiteral { value: bool },
-    FunctionCall { name: String, arguments: Vec<AstElement> },
     Symbol { name: String },
 }
 

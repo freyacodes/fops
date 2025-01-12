@@ -1,5 +1,5 @@
 use crate::ast::operator::OperatorType;
-use crate::ast::AstElement;
+use crate::ast::AstExpression;
 use std::cmp::PartialEq;
 
 #[cfg(test)]
@@ -22,14 +22,9 @@ impl RuntimeValue {
     }
 }
 
-pub fn evaluate_expression(element: &AstElement) -> Result<RuntimeValue, String> {
+pub fn evaluate_expression(element: &AstExpression) -> Result<RuntimeValue, String> {
     Ok(match element {
-        AstElement::Let { .. } => panic!("Not intended to be used here"),
-        AstElement::Reassignment { .. } => panic!("Not intended to be used here"),
-        AstElement::If { .. } => panic!("Not intended to be used here"),
-        AstElement::ElseIf { .. } => panic!("Not intended to be used here"),
-        AstElement::Else { .. } => panic!("Not intended to be used here"),
-        AstElement::BiOperator { operator, left, right } => {
+        AstExpression::BiOperator { operator, left, right } => {
             let left_value = evaluate_expression(left)?;
             let right_value = evaluate_expression(right)?;
             
@@ -84,7 +79,7 @@ pub fn evaluate_expression(element: &AstElement) -> Result<RuntimeValue, String>
                 OperatorType::Bang => unreachable!()
             }
         },
-        AstElement::UnaryOperator { operator, operand } => {
+        AstExpression::UnaryOperator { operator, operand } => {
             let operand_value = evaluate_expression(operand)?;
             match operator {
                 OperatorType::Minus => {
@@ -102,17 +97,16 @@ pub fn evaluate_expression(element: &AstElement) -> Result<RuntimeValue, String>
                 _ => panic!("Unexpected operator {}", operator)
             }
         },
-        AstElement::NumberLiteral { value } => {
+        AstExpression::NumberLiteral { value } => {
             return if let Ok(number) = value.parse() {
                 Ok(RuntimeValue::Integer(number))
             } else {
                 Err(format!("Can't parse integer: {}", value))
             }
         },
-        AstElement::StringLiteral { value } => RuntimeValue::String(value.clone()),
-        AstElement::BooleanLiteral { value } => RuntimeValue::Boolean(*value),
-        AstElement::FunctionCall { .. } => todo!("Functions are not a thing yet"),
-        AstElement::Symbol { .. } => todo!("Not implemented until variables are added")
+        AstExpression::StringLiteral { value } => RuntimeValue::String(value.clone()),
+        AstExpression::BooleanLiteral { value } => RuntimeValue::Boolean(*value),
+        AstExpression::Symbol { .. } => todo!("Not implemented until variables are added")
     })
 }
 

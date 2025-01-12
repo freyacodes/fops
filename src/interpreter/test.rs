@@ -1,11 +1,11 @@
 use std::collections::VecDeque;
-use crate::ast::AstElement;
+use crate::ast::AstExpression;
 use crate::interpreter::{evaluate_expression, RuntimeValue};
 use crate::interpreter::RuntimeValue::{Boolean, Integer};
 use crate::{ast, lexer};
 use crate::lexer::Token;
 
-fn parse_single(string: String) -> AstElement {
+fn parse_single(string: String) -> AstExpression {
     let lexed = lexer::lex_from_string(string).unwrap().into_iter().flatten().collect::<VecDeque<Token>>();
     ast::expression::parse(lexed).expect("Parsing failed")
 }
