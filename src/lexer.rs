@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::fs;
 use std::path::Path;
 
@@ -19,7 +20,7 @@ pub struct Token {
     pub contents: String,
 }
 
-pub fn lex_from_file(file: Box<Path>) -> Result<Vec<Vec<Token>>, String> {
+pub fn lex_from_file(file: Box<Path>) -> Result<VecDeque<Token>, String> {
     let file_name = file.file_name()
         .expect("File name does not end in ..")
         .to_str()
@@ -34,13 +35,13 @@ pub fn lex_from_file(file: Box<Path>) -> Result<Vec<Vec<Token>>, String> {
     lex_from_string(file_contents)
 }
 
-pub fn lex_from_string(string: String) -> Result<Vec<Vec<Token>>, String> {
-    let mut tokenized_lines: Vec<Vec<Token>> = Vec::new();
+pub fn lex_from_string(string: String) -> Result<VecDeque<Token>, String> {
+    let mut tokens: VecDeque<Token> = VecDeque::new();
     for (line_index, line) in string.lines().enumerate() {
-        tokenized_lines.push(lex_line(line, line_index)?);
+        lex_line(line, line_index)?.into_iter().for_each(|token| tokens.push_back(token))
     }
 
-    Ok(tokenized_lines)
+    Ok(tokens)
 }
 
 fn lex_line(line: &str, line_index: usize) -> Result<Vec<Token>, String> {

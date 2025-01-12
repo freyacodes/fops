@@ -6,7 +6,7 @@ use crate::{ast, lexer};
 use crate::lexer::Token;
 
 fn parse_single(string: String) -> AstExpression {
-    let lexed = lexer::lex_from_string(string).unwrap().into_iter().flatten().collect::<VecDeque<Token>>();
+    let lexed = lexer::lex_from_string(string).unwrap();
     ast::expression::parse(lexed).expect("Parsing failed")
 }
 

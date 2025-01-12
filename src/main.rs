@@ -21,7 +21,7 @@ fn repl() {
         stdin.read_line(&mut buffer).expect("Failure when reading stdin");
 
         let lexed = match lexer::lex_from_string(buffer) {
-            Ok(tokens) => tokens.into_iter().flatten().collect::<VecDeque<Token>>(),
+            Ok(tokens) => tokens.into_iter().collect::<VecDeque<Token>>(),
             Err(str) => { println!("Lexer error: {}", str); continue; }
         };
         

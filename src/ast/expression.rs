@@ -1,4 +1,4 @@
-use crate::ast::operator::OperatorType::{Plus, Division, Equality, Modulus, Multiplication, Minus, Bang, Inequality, LessThan, GreaterThan, LessThanOrEqual, GreaterThanOrEqual};
+use crate::ast::operator::OperatorType::{Bang, Division, Equality, GreaterThan, GreaterThanOrEqual, Inequality, LessThan, LessThanOrEqual, Minus, Modulus, Multiplication, Plus};
 use crate::ast::AstExpression::{BooleanLiteral, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
 use crate::ast::{util, AstExpression};
 use crate::lexer::{Token, TokenType};
@@ -126,12 +126,11 @@ mod test {
     use crate::ast::operator::OperatorType::{Division, Multiplication};
     use crate::ast::AstExpression::{BiOperator, NumberLiteral, Symbol, UnaryOperator};
     use crate::lexer;
-    use crate::lexer::Token;
     use std::collections::VecDeque;
 
     #[test]
     fn parenthesis_division_test() {
-        let lexed = lexer::lex_from_string("(-500*bar)/10".to_string()).unwrap().into_iter().flatten().collect::<VecDeque<Token>>();
+        let lexed = lexer::lex_from_string("(-500*bar)/10".to_string()).unwrap();
         let expected = BiOperator {
             operator: Division,
             left: Box::new(BiOperator {
