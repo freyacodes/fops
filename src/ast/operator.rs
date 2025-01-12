@@ -4,6 +4,12 @@ use std::fmt;
 pub enum OperatorType {
     Equality,
     Inequality,
+    
+    LessThan,
+    GreaterThan,
+    LessThanOrEqual,
+    GreaterThanOrEqual,
+    
     Bang,
     Multiplication,
     Division,
@@ -17,6 +23,11 @@ pub(super) fn parse(str: &str) -> Option<OperatorType> {
         "==" => OperatorType::Equality,
         "!=" => OperatorType::Inequality,
         "!" => OperatorType::Bang,
+        
+        "<" => OperatorType::LessThan,
+        ">" => OperatorType::GreaterThan,
+        "<=" => OperatorType::LessThanOrEqual,
+        ">=" => OperatorType::GreaterThanOrEqual,
 
         "*" => OperatorType::Multiplication,
         "/" => OperatorType::Division,

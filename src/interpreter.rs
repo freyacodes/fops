@@ -36,6 +36,22 @@ pub fn evaluate_expression(element: &AstElement) -> Result<RuntimeValue, String>
             match operator {
                 OperatorType::Equality => RuntimeValue::Boolean(left_value == right_value),
                 OperatorType::Inequality => RuntimeValue::Boolean(left_value != right_value),
+                OperatorType::LessThan => {
+                    let (l, r) = match_two_integers(&left_value, &right_value)?;
+                    RuntimeValue::Boolean(l < r)
+                }
+                OperatorType::LessThanOrEqual => {
+                    let (l, r) = match_two_integers(&left_value, &right_value)?;
+                    RuntimeValue::Boolean(l <= r)
+                }
+                OperatorType::GreaterThan => {
+                    let (l, r) = match_two_integers(&left_value, &right_value)?;
+                    RuntimeValue::Boolean(l > r)
+                }
+                OperatorType::GreaterThanOrEqual => {
+                    let (l, r) = match_two_integers(&left_value, &right_value)?;
+                    RuntimeValue::Boolean(l >= r)
+                }
                 OperatorType::Multiplication => {
                     let (l, r) = match_two_integers(&left_value, &right_value)?;
                     RuntimeValue::Integer(l * r)

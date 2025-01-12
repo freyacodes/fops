@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::Path;
 
-const CONTROL_CHARACTERS: [char; 11] = ['+', '-', '*', '/', '!', '=', '(', ')', '{', '}', ';'];
-const MULTICHAR_OPERATORS: [char; 2] = ['=', '!'];
+const CONTROL_CHARACTERS: [char; 13] = ['+', '-', '*', '/', '!', '=', '<', '>', '(', ')', '{', '}', ';'];
+const MULTICHAR_OPERATORS: [char; 4] = ['=', '!', '<', '>'];
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum TokenType {

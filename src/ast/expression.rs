@@ -1,4 +1,4 @@
-use crate::ast::operator::OperatorType::{Plus, Division, Equality, Modulus, Multiplication, Minus, Bang, Inequality};
+use crate::ast::operator::OperatorType::{Plus, Division, Equality, Modulus, Multiplication, Minus, Bang, Inequality, LessThan, GreaterThan, LessThanOrEqual, GreaterThanOrEqual};
 use crate::ast::AstElement::{BooleanLiteral, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
 use crate::ast::{util, AstElement};
 use crate::lexer::{Token, TokenType};
@@ -29,8 +29,19 @@ fn equality(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
 }
 
 fn comparison(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
-    // TODO: Add comparison to the language
-    term(tokens)
+    let mut expression = term(tokens)?;
+
+    loop {
+        if let Some(operator) = util::match_operator(tokens, [LessThan, GreaterThan, LessThanOrEqual, GreaterThanOrEqual]) {
+            expression = AstElement::BiOperator {
+                operator,
+                left: Box::new(expression),
+                right: Box::new(factor(tokens)?),
+            }
+        } else { break; }
+    }
+    
+    Ok(expression)
 }
 
 fn term(tokens: &mut VecDeque<Token>) -> Result<AstElement, String> {
