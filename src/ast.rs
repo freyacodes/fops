@@ -22,60 +22,6 @@ pub enum AstExpression {
 }
 
 /*
-pub fn parse(tokens: Vec<Vec<Token>>) -> Result<Vec<AstElement>, String> {
-    let mut remaining_tokens = tokens.into_iter().flatten().collect::<Vec<Token>>();
-    let mut elements: Vec<AstElement> = Vec::new();
-
-    let mut buffer: Vec<Token> = Vec::new();
-    while !remaining_tokens.is_empty() {
-        let next_token = remaining_tokens.first().unwrap();
-        let element = match next_token {
-            Let => { parse_let(&mut remaining_tokens)? }
-            _ => todo!()
-        };
-        elements.push(element);
-    }
-
-    Ok(elements)
-}
-
-fn parse_let(remaining_tokens: &mut Vec<Token>) -> Result<AstElement, String> {
-    let semicolon = remaining_tokens.iter().enumerate()
-        .find(|(_, t)| t.token_type == TokenType::Special && t.contents == ";");
-
-    let semicolon_index = match semicolon {
-        // TODO: Add line number to token
-        None => return Err("Missing semicolon".to_string()),
-        Some((i, _)) => i
-    };
-
-    let mut tokens = remaining_tokens.drain(0..semicolon_index).collect::<VecDeque<Token>>();
-    tokens.pop_front().unwrap(); // Let token that we already matched
-    let symbol_name = match tokens.pop_front() {
-        None => return Err("Expected variable name".to_string()),
-        Some(t) => if t.token_type == TokenType::Symbol { 
-            t.contents.to_string() 
-        } else { 
-            return Err("Expected variable name".to_string()) 
-        }
-    };
-    
-    if tokens.pop_front() != Some(Token { token_type: TokenType::Special, contents: "=".to_string() }) {
-        return Err("Expected equals sign".to_string())
-    }
-    
-    let expression = expression::parse(tokens)?;
-    Ok(Let { name: symbol_name, expression: Box::new(expression) })
-}
-
-fn parse_reassignment() -> Result<AstElement, String> {
-    todo!()
-}
-
-fn parse_if_blocks() -> Result<AstElement, String> {
-    todo!()
-}
-
 #[cfg(test)]
 mod test {
     use crate::ast::operator::OperatorType::{Division, Multiplication};
