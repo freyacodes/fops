@@ -78,6 +78,7 @@ mod test {
                 value: "4".to_string(),
             })
         });
+        assert!(lexed.is_empty(), "Expected all tokens to be fully consumed");
     }
 
     #[test]
@@ -91,6 +92,7 @@ mod test {
                 value: "4".to_string(),
             })
         });
+        assert!(lexed.is_empty(), "Expected all tokens to be fully consumed");
     }
 
     #[test]
@@ -106,5 +108,6 @@ mod test {
                 ]
             })
         });
+        assert!(lexed.is_empty(), "Expected all tokens to be fully consumed");
     }
 }
