@@ -2,6 +2,7 @@ use crate::lexer::Token;
 use std::collections::VecDeque;
 use std::io;
 use std::io::Write;
+use crate::interpreter::RuntimeValue;
 
 mod lexer;
 mod ast;
@@ -31,7 +32,12 @@ fn repl() {
         };
         
         match interpreter::evaluate_expression(&expression) {
-            Ok(value) => { println!("{}", value.value_as_string()) }
+            Ok(value) => { 
+                match value {
+                    RuntimeValue::Unit => {}
+                    _ => println!("{}", value.value_as_string())
+                }
+            }
             Err(str) => { println!("Runtime error: {}", str); continue; }
         }
     }

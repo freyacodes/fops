@@ -4,12 +4,14 @@ use std::cmp::PartialEq;
 
 #[cfg(test)]
 mod test;
+mod function;
 
 #[derive(Debug, PartialEq)]
 pub enum RuntimeValue {
     String(String),
     Integer(i32),
-    Boolean(bool)
+    Boolean(bool),
+    Unit
 }
 
 impl RuntimeValue {
@@ -17,7 +19,8 @@ impl RuntimeValue {
         match self {
             RuntimeValue::String(string) => string.to_string(),
             RuntimeValue::Integer(int) => int.to_string(),
-            RuntimeValue::Boolean(bool) => bool.to_string()
+            RuntimeValue::Boolean(bool) => bool.to_string(),
+            RuntimeValue::Unit => "unit".to_string()
         }
     }
 }
@@ -106,7 +109,7 @@ pub fn evaluate_expression(element: &AstExpression) -> Result<RuntimeValue, Stri
         },
         AstExpression::StringLiteral { value } => RuntimeValue::String(value.clone()),
         AstExpression::BooleanLiteral { value } => RuntimeValue::Boolean(*value),
-        AstExpression::FunctionCall { .. } => todo!("Functions are not implemented yet"),
+        AstExpression::FunctionCall { name, arguments } => function::invoke_function(name, arguments)?,
         AstExpression::Symbol { .. } => todo!("Not implemented until variables are added")
     })
 }
