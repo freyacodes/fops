@@ -3,7 +3,7 @@ use crate::ast::util::consume_control;
 use crate::ast::AstStatement;
 use crate::lexer::Token;
 use std::collections::VecDeque;
-use crate::lexer::TokenType::Symbol;
+use crate::lexer::TokenType::{Control, Symbol};
 
 pub(super) fn statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
     declaration_statement(tokens)
@@ -20,10 +20,13 @@ fn declaration_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, S
 
             consume_control(tokens, "=")?;
             
-            return Ok(AstStatement::Declaration {
+            let statement = AstStatement::Declaration {
                 name: name_token.contents,
                 expression: Box::new(expression(tokens)?)
-            })
+            };
+
+            consume_control(tokens, ";")?;
+            return Ok(statement)
         }
     }
     
@@ -31,6 +34,23 @@ fn declaration_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, S
 }
 
 fn reassignment_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
+    if let Some(first) = tokens.get(0) {
+        if let Some(second) = tokens.get(1) {
+            if first.token_type == Symbol && second.token_type == Control && second.contents == "=" {
+                let name_token = tokens.pop_front().unwrap();
+                tokens.pop_front(); // Drop the =
+
+                let statement = AstStatement::Reassignment {
+                    name: name_token.contents,
+                    expression: Box::new(expression(tokens)?)
+                };
+
+                consume_control(tokens, ";")?;
+                return Ok(statement)
+            }
+        }
+    }
+    
     expression_statement(tokens)
 }
 
