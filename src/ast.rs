@@ -24,6 +24,17 @@ pub enum AstExpression {
     Symbol { name: String },
 }
 
+#[allow(dead_code)]
+pub fn parse_script(mut tokens: VecDeque<Token>) -> Result<Vec<AstStatement>, String> {
+    let mut statements: Vec<AstStatement> = Vec::new();
+
+    while !tokens.is_empty() {
+        statements.push(statement::statement(&mut tokens)?)
+    }
+    
+    Ok(statements)
+}
+
 pub fn parse_expression_only(mut tokens: VecDeque<Token>) -> Result<AstExpression, String> {
     expression::expression(&mut tokens)
 }
