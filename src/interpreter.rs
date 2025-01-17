@@ -106,6 +106,7 @@ pub fn evaluate_expression(element: &AstExpression) -> Result<RuntimeValue, Stri
         },
         AstExpression::StringLiteral { value } => RuntimeValue::String(value.clone()),
         AstExpression::BooleanLiteral { value } => RuntimeValue::Boolean(*value),
+        AstExpression::FunctionCall { .. } => todo!("Functions are not implemented yet"),
         AstExpression::Symbol { .. } => todo!("Not implemented until variables are added")
     })
 }

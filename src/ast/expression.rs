@@ -1,10 +1,37 @@
 use crate::ast::operator::OperatorType::{Bang, Division, Equality, GreaterThan, GreaterThanOrEqual, Inequality, LessThan, LessThanOrEqual, Minus, Modulus, Multiplication, Plus};
+use crate::ast::util::consume_control;
 use crate::ast::AstExpression::{BooleanLiteral, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
 use crate::ast::{util, AstExpression};
 use crate::lexer::{Token, TokenType};
 use std::collections::VecDeque;
 
 pub(super) fn expression(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
+    function_call(tokens)
+}
+
+fn function_call(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
+    if let Some(first) = tokens.get(0) {
+        if let Some(second) = tokens.get(1) {
+            if first.token_type == TokenType::Symbol
+                && second.token_type == TokenType::Control
+                && second.contents == "(" {
+                // Remove already matched tokens
+                let name = tokens.pop_front().unwrap();
+                tokens.pop_front().unwrap();
+
+                // Currently only one argument is supported
+                let argument = expression(tokens)?;
+
+                consume_control(tokens, ")")?;
+
+                return Ok(AstExpression::FunctionCall {
+                    name: name.contents,
+                    arguments: vec![argument],
+                });
+            }
+        }
+    }
+
     equality(tokens)
 }
 
@@ -36,7 +63,7 @@ fn comparison(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
             }
         } else { break; }
     }
-    
+
     Ok(expression)
 }
 
@@ -90,9 +117,9 @@ fn primary(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
         }
         if next_token.token_type == TokenType::StringLiteral {
             let len = next_token.contents.len();
-            return Ok(StringLiteral { 
+            return Ok(StringLiteral {
                 // Remove the quotes
-                value: next_token.contents.chars().skip(1).take(len-2).collect() 
+                value: next_token.contents.chars().skip(1).take(len - 2).collect()
             });
         }
         if next_token.token_type == TokenType::Symbol {
@@ -110,21 +137,36 @@ fn primary(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
             return Ok(expression);
         }
 
-        return Err(format!("Unexpected end of expression {}", next_token.contents))
+        return Err(format!("Unexpected end of expression {}", next_token.contents));
     }
     Err("Unexpected end of expression".to_string())
 }
 
 #[cfg(test)]
 mod test {
+    use crate::ast::expression::expression;
     use crate::ast::operator::OperatorType;
     use crate::ast::operator::OperatorType::{Division, Multiplication};
-    use crate::ast::AstExpression::{BiOperator, NumberLiteral, Symbol, UnaryOperator};
+    use crate::ast::AstExpression::{BiOperator, FunctionCall, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
     use crate::{ast, lexer};
     use std::collections::VecDeque;
 
     #[test]
-    fn parenthesis_division_test() {
+    fn test_function_call_parsing() {
+        let mut lexed = lexer::lex_from_string("println(\"Hello, world!\")".to_string()).unwrap();
+
+        let statement = expression(&mut lexed).expect("Expected to return Ok");
+        assert!(lexed.is_empty(), "Expected all tokens to have been consumed");
+        assert_eq!(statement, FunctionCall {
+            name: "println".to_string(),
+            arguments: vec![
+                StringLiteral { value: "Hello, world!".to_string() }
+            ]
+        });
+    }
+
+    #[test]
+    fn test_parenthesis_division() {
         let lexed = lexer::lex_from_string("(-500*bar)/10".to_string()).unwrap();
         let expected = BiOperator {
             operator: Division,
