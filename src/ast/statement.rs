@@ -3,12 +3,30 @@ use crate::ast::util::consume_control;
 use crate::ast::AstStatement;
 use crate::lexer::Token;
 use std::collections::VecDeque;
+use crate::lexer::TokenType::Symbol;
 
 pub(super) fn statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
-    assignment_statement(tokens)
+    declaration_statement(tokens)
 }
 
-fn assignment_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
+fn declaration_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
+    if let Some(first) = tokens.get(0) {
+        if first.token_type == Symbol && first.contents == "let" {
+            tokens.pop_front();
+            let name_token = match tokens.pop_front() {
+                None => return Err("Expected name in let statement".to_string()),
+                Some(token) => token
+            };
+
+            consume_control(tokens, "=")?;
+            
+            return Ok(AstStatement::Declaration {
+                name: name_token.contents,
+                expression: Box::new(expression(tokens)?)
+            })
+        }
+    }
+    
     reassignment_statement(tokens)
 }
 
@@ -30,11 +48,11 @@ mod test {
     use crate::lexer;
 
     #[test]
-    fn test_assignment_statement() {
+    fn test_declaration_statement() {
         let mut lexed = lexer::lex_from_string("let four = 4;".to_string()).unwrap();
         let statement = statement(&mut lexed).expect("Expected to return Ok");
 
-        assert_eq!(statement, AstStatement::Assignment {
+        assert_eq!(statement, AstStatement::Declaration {
             name: "four".to_string(),
             expression: Box::new(NumberLiteral {
                 value: "4".to_string(),
