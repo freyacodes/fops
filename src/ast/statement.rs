@@ -61,6 +61,19 @@ mod test {
     }
 
     #[test]
+    fn test_reassignment_statement() {
+        let mut lexed = lexer::lex_from_string("four = 4;".to_string()).unwrap();
+        let statement = statement(&mut lexed).expect("Expected to return Ok");
+
+        assert_eq!(statement, AstStatement::Reassignment {
+            name: "four".to_string(),
+            expression: Box::new(NumberLiteral {
+                value: "4".to_string(),
+            })
+        });
+    }
+
+    #[test]
     fn test_expression_statement() {
         let mut lexed = lexer::lex_from_string("println(\"Hello, world!\");".to_string()).unwrap();
         let statement = statement(&mut lexed).expect("Expected to return Ok");
