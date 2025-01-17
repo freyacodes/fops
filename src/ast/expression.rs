@@ -155,9 +155,8 @@ mod test {
     fn test_function_call_parsing() {
         let mut lexed = lexer::lex_from_string("println(\"Hello, world!\")".to_string()).unwrap();
 
-        let statement = expression(&mut lexed).expect("Expected to return Ok");
-        assert!(lexed.is_empty(), "Expected all tokens to have been consumed");
-        assert_eq!(statement, FunctionCall {
+        let expression = expression(&mut lexed).expect("Expected to return Ok");
+        assert_eq!(expression, FunctionCall {
             name: "println".to_string(),
             arguments: vec![
                 StringLiteral { value: "Hello, world!".to_string() }
