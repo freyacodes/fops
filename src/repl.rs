@@ -2,7 +2,7 @@ use std::io;
 use std::collections::VecDeque;
 use std::io::Write;
 use crate::{ast, interpreter, lexer};
-use crate::interpreter::RuntimeValue;
+use crate::interpreter::value::RuntimeValue;
 use crate::lexer::Token;
 
 pub fn repl() {

@@ -9,7 +9,7 @@ mod repl;
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
-    
+
     if let Some(arg) = args.get(0) {
         let lexed = match lexer::lex_from_file(Box::from(Path::new(&arg))) {
             Ok(lexed) => lexed,
@@ -18,7 +18,7 @@ fn main() {
                 return;
             }
         };
-        
+
         let statements = match ast::parse_script(lexed) {
             Ok(statements) => statements,
             Err(err) => {
@@ -26,7 +26,7 @@ fn main() {
                 return;
             }
         };
-        
+
         if let Err(error) = interpret_statements(&statements) {
             println!("Runtime error: {}", error);
         }

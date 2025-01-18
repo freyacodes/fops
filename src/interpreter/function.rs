@@ -1,7 +1,8 @@
 use std::io;
 use std::io::Write;
 use crate::ast::AstExpression;
-use crate::interpreter::{evaluate_expression, RuntimeValue};
+use crate::interpreter::evaluate_expression;
+use crate::interpreter::value::RuntimeValue;
 
 pub(super) fn invoke_function(name: &str, arguments: &Vec<AstExpression>) -> Result<RuntimeValue, String> {
     match name { 

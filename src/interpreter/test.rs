@@ -1,7 +1,8 @@
 use crate::ast::AstExpression;
-use crate::interpreter::RuntimeValue::{Boolean, Integer};
-use crate::interpreter::{evaluate_expression, RuntimeValue};
+use crate::interpreter::value::RuntimeValue::{Boolean, Integer};
+use crate::interpreter::evaluate_expression;
 use crate::lexer;
+use crate::interpreter::value::RuntimeValue;
 
 fn parse_single(string: String) -> AstExpression {
     let lexed = lexer::lex_from_string(string).unwrap();
