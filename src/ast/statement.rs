@@ -3,7 +3,7 @@ use crate::ast::util::consume_control;
 use crate::ast::AstStatement;
 use crate::lexer::Token;
 use std::collections::VecDeque;
-use crate::lexer::TokenType::{Control, Symbol};
+use crate::lexer::TokenType::{Control, Keyword, Symbol};
 
 pub(super) fn statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
     declaration_statement(tokens)
@@ -11,7 +11,7 @@ pub(super) fn statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, St
 
 fn declaration_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
     if let Some(first) = tokens.get(0) {
-        if first.token_type == Symbol && first.contents == "let" {
+        if first.token_type == Keyword && first.contents == "let" {
             tokens.pop_front();
             let name_token = match tokens.pop_front() {
                 None => return Err("Expected name in let statement".to_string()),

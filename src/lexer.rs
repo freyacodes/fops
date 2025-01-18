@@ -4,10 +4,12 @@ use std::path::Path;
 
 const CONTROL_CHARACTERS: [char; 13] = ['+', '-', '*', '/', '!', '=', '<', '>', '(', ')', '{', '}', ';'];
 const MULTICHAR_OPERATORS: [char; 4] = ['=', '!', '<', '>'];
+const RESERVED_KEYWORDS: [&str; 2] = ["let", "if"];
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum TokenType {
     None,
+    Keyword,
     Symbol,
     Number,
     Control,
@@ -52,9 +54,17 @@ fn lex_line(line: &str, line_index: usize) -> Result<Vec<Token>, String> {
 
     fn terminate_token(buffer: &mut Vec<char>, tokens: &mut Vec<Token>, token_type: &mut TokenType) {
         if buffer.is_empty() { return; }
+        let string = buffer.drain(0..).collect::<String>();
+        
+        let final_type = if token_type == &TokenType::Symbol && RESERVED_KEYWORDS.contains(&string.as_str()) {
+            TokenType::Keyword
+        } else { 
+            *token_type
+        };
+        
         tokens.push(Token {
-            token_type: *token_type,
-            contents: buffer.drain(0..).collect::<String>()
+            token_type: final_type,
+            contents: string
         });
         *token_type = TokenType::None;
     }
@@ -117,8 +127,8 @@ fn lex_line(line: &str, line_index: usize) -> Result<Vec<Token>, String> {
                 }
                 buffer.push(c);
             }
-            TokenType::StringLiteral => unreachable!(),
-            TokenType::None => unreachable!()
+            TokenType::StringLiteral | TokenType::Keyword | TokenType::None => unreachable!()
+            
         }
     }
 
@@ -129,13 +139,13 @@ fn lex_line(line: &str, line_index: usize) -> Result<Vec<Token>, String> {
 #[cfg(test)]
 mod test {
     use crate::lexer::{lex_line, Token};
-    use crate::lexer::TokenType::{Number, Control, StringLiteral, Symbol};
+    use crate::lexer::TokenType::{Number, Control, StringLiteral, Symbol, Keyword};
 
     #[test]
     fn test_string_assignment() {
         let line = "let foo=\"bar\";";
         let expected = vec![
-            Token { token_type: Symbol, contents: "let".to_string() },
+            Token { token_type: Keyword, contents: "let".to_string() },
             Token { token_type: Symbol, contents: "foo".to_string() },
             Token { token_type: Control, contents: "=".to_string() },
             Token { token_type: StringLiteral, contents: "\"bar\"".to_string() },
@@ -149,7 +159,7 @@ mod test {
     fn test_arithmetic_assignment() {
         let line = "let foo = (-500*bar)/10;";
         let expected = vec![
-            Token { token_type: Symbol, contents: "let".to_string() },
+            Token { token_type: Keyword, contents: "let".to_string() },
             Token { token_type: Symbol, contents: "foo".to_string() },
             Token { token_type: Control, contents: "=".to_string() },
             Token { token_type: Control, contents: "(".to_string() },
@@ -170,7 +180,7 @@ mod test {
     fn test_if_equality() {
         let line = "if foo==500{";
         let expected = vec![
-            Token { token_type: Symbol, contents: "if".to_string() },
+            Token { token_type: Keyword, contents: "if".to_string() },
             Token { token_type: Symbol, contents: "foo".to_string() },
             Token { token_type: Control, contents: "==".to_string() },
             Token { token_type: Number, contents: "500".to_string() },
