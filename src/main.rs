@@ -1,44 +1,36 @@
-use crate::lexer::Token;
-use std::collections::VecDeque;
-use std::io;
-use std::io::Write;
-use crate::interpreter::RuntimeValue;
+use crate::interpreter::interpret_statements;
+use std::env;
+use std::path::Path;
 
 mod lexer;
 mod ast;
 mod interpreter;
+mod repl;
 
 fn main() {
-    repl()
-}
-
-fn repl() {
-    loop {
-        print!("> ");
-        io::stdout().flush().unwrap();
-        
-        let mut buffer = String::new();
-        let stdin = io::stdin();
-        stdin.read_line(&mut buffer).expect("Failure when reading stdin");
-
-        let lexed = match lexer::lex_from_string(buffer) {
-            Ok(tokens) => tokens.into_iter().collect::<VecDeque<Token>>(),
-            Err(str) => { println!("Lexer error: {}", str); continue; }
-        };
-        
-        let expression = match ast::parse_expression_only(lexed) {
-            Ok(expression) => expression,
-            Err(str) => { println!("Parser error: {}", str); continue; }
-        };
-        
-        match interpreter::evaluate_expression(&expression) {
-            Ok(value) => { 
-                match value {
-                    RuntimeValue::Unit => {}
-                    _ => println!("{}", value.value_as_string())
-                }
+    let args: Vec<String> = env::args().skip(1).collect();
+    
+    if let Some(arg) = args.get(0) {
+        let lexed = match lexer::lex_from_file(Box::from(Path::new(&arg))) {
+            Ok(lexed) => lexed,
+            Err(err) => {
+                println!("Lexer: {}", err);
+                return;
             }
-            Err(str) => { println!("Runtime error: {}", str); continue; }
+        };
+        
+        let statements = match ast::parse_script(lexed) {
+            Ok(statements) => statements,
+            Err(err) => {
+                println!("Syntax error: {}", err);
+                return;
+            }
+        };
+        
+        if let Err(error) = interpret_statements(&statements) {
+            println!("Runtime error: {}", error);
         }
+    } else {
+        repl::repl();
     }
 }

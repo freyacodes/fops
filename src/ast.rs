@@ -25,7 +25,6 @@ pub enum AstExpression {
     FunctionCall { name: String, arguments: Vec<AstExpression> }
 }
 
-#[allow(dead_code)]
 pub fn parse_script(mut tokens: VecDeque<Token>) -> Result<Vec<AstStatement>, String> {
     let mut statements: Vec<AstStatement> = Vec::new();
 

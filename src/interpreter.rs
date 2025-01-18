@@ -1,5 +1,5 @@
 use crate::ast::operator::OperatorType;
-use crate::ast::AstExpression;
+use crate::ast::{AstExpression, AstStatement};
 use std::cmp::PartialEq;
 
 #[cfg(test)]
@@ -23,6 +23,24 @@ impl RuntimeValue {
             RuntimeValue::Unit => "unit".to_string()
         }
     }
+}
+
+pub fn interpret_statements(statements: &Vec<AstStatement>) -> Result<(), String> {
+    for statement in statements {
+        evaluate_statement(statement)?;
+    }
+    
+    Ok(())
+}
+
+fn evaluate_statement(statement: &AstStatement) -> Result<(), String> {
+    match statement { 
+        AstStatement::Expression { expression } => { evaluate_expression(expression)?; },
+        AstStatement::Declaration { .. } => todo!("Declarations are not implemented yet"),
+        AstStatement::Reassignment { .. } => todo!("Reassignments are not implemented yet")
+    };
+    
+    Ok(())
 }
 
 pub fn evaluate_expression(element: &AstExpression) -> Result<RuntimeValue, String> {
