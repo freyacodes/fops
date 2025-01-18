@@ -109,3 +109,11 @@ fn test_reassignment() {
     interpreter::interpret_statements(&mut environment, &mut statements).unwrap();
     assert_eq!(environment.get(&"four".to_string()), Some(&RuntimeValue::Integer(5)));
 }
+
+#[test]
+fn test_variable_arithmetic() {
+    let mut statements = parse_statements("let minutes = 2; let seconds = minutes * 60;".to_string());
+    let mut environment = Environment::new();
+    interpreter::interpret_statements(&mut environment, &mut statements).unwrap();
+    assert_eq!(environment.get(&"seconds".to_string()), Some(&RuntimeValue::Integer(120)));
+}
