@@ -101,3 +101,11 @@ fn test_declaration() {
     interpreter::interpret_statements(&mut environment, &mut statements).unwrap();
     assert_eq!(environment.get(&"four".to_string()), Some(&RuntimeValue::Integer(4)));
 }
+
+#[test]
+fn test_reassignment() {
+    let mut statements = parse_statements("let four = 4; four = 5;".to_string());
+    let mut environment = Environment::new();
+    interpreter::interpret_statements(&mut environment, &mut statements).unwrap();
+    assert_eq!(environment.get(&"four".to_string()), Some(&RuntimeValue::Integer(5)));
+}
