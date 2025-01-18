@@ -1,4 +1,3 @@
-use crate::interpreter::interpret_statements;
 use std::env;
 use std::path::Path;
 
@@ -27,7 +26,7 @@ fn main() {
             }
         };
 
-        if let Err(error) = interpret_statements(&statements) {
+        if let Err(error) = interpreter::start(&statements) {
             println!("Runtime error: {}", error);
         }
     } else {

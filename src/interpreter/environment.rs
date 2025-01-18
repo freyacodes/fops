@@ -1,25 +1,24 @@
-use std::any::Any;
+use crate::interpreter::value::RuntimeValue;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-use crate::interpreter::value::RuntimeValue;
 
-struct Environment {
+pub(super) struct Environment {
     //parent: Option<Box<Environment>>,
     values: HashMap<String, RuntimeValue>
 }
 
 impl Environment {
-    fn new() -> Self {
+    pub(super)fn new() -> Self {
         Environment {
             values: HashMap::new()
         }
     }
-    
-    fn get(&self, key: &str) -> Option<&RuntimeValue> {
+
+    pub(super)fn get(&self, key: &str) -> Option<&RuntimeValue> {
         self.values.get(key)
     }
-    
-    fn declare(&mut self, key: String, value: RuntimeValue) -> Result<(), String> {
+
+    pub(super)fn declare(&mut self, key: String, value: RuntimeValue) -> Result<(), String> {
         let entry = self.values.entry(key);
         match entry {
             Entry::Occupied(_) => { return Err(format!("Variable '{}' is already defined", entry.key())); },
@@ -28,7 +27,7 @@ impl Environment {
         Ok(())
     }
 
-    fn reassign(&mut self, key: String, value: RuntimeValue) -> Result<(), String> {
+    pub(super)fn reassign(&mut self, key: String, value: RuntimeValue) -> Result<(), String> {
         let entry = self.values.entry(key);
         match entry {
             Entry::Occupied(_) => { entry.insert_entry(value); },

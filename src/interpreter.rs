@@ -1,6 +1,7 @@
 use crate::ast::operator::OperatorType;
 use crate::ast::{AstExpression, AstStatement};
 use value::RuntimeValue;
+use crate::interpreter::environment::Environment;
 
 #[cfg(test)]
 mod test;
@@ -8,15 +9,20 @@ mod function;
 pub mod value;
 mod environment;
 
-pub fn interpret_statements(statements: &Vec<AstStatement>) -> Result<(), String> {
+pub fn start(statements: &Vec<AstStatement>) -> Result<(), String> {
+    let mut environment = Environment::new();
+    interpret_statements(&mut environment, statements)
+}
+
+fn interpret_statements(environment: &mut Environment, statements: &Vec<AstStatement>) -> Result<(), String> {
     for statement in statements {
-        evaluate_statement(statement)?;
+        evaluate_statement(environment, statement)?;
     }
     
     Ok(())
 }
 
-fn evaluate_statement(statement: &AstStatement) -> Result<(), String> {
+fn evaluate_statement(environment: &mut Environment, statement: &AstStatement) -> Result<(), String> {
     match statement { 
         AstStatement::Expression { expression } => { evaluate_expression(expression)?; },
         AstStatement::Declaration { .. } => todo!("Declarations are not implemented yet"),
