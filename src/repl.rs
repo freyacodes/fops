@@ -2,10 +2,13 @@ use std::io;
 use std::collections::VecDeque;
 use std::io::Write;
 use crate::{ast, interpreter, lexer};
+use crate::interpreter::environment::Environment;
 use crate::interpreter::value::RuntimeValue;
 use crate::lexer::Token;
 
 pub fn repl() {
+    let mut environment = Environment::new();
+    
     loop {
         print!("> ");
         io::stdout().flush().unwrap();
@@ -24,7 +27,7 @@ pub fn repl() {
             Err(str) => { println!("Parser error: {}", str); continue; }
         };
 
-        match interpreter::evaluate_expression(&expression) {
+        match interpreter::evaluate_expression(&mut environment, &expression) {
             Ok(value) => {
                 match value {
                     RuntimeValue::Unit => {}

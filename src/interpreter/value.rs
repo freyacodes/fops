@@ -1,3 +1,11 @@
+#[derive(Debug, PartialEq, Clone)]
+pub enum RuntimeValue {
+    String(String),
+    Integer(i32),
+    Boolean(bool),
+    Unit
+}
+
 impl RuntimeValue {
     pub fn value_as_string(&self) -> String {
         match self {
@@ -7,12 +15,4 @@ impl RuntimeValue {
             RuntimeValue::Unit => "unit".to_string()
         }
     }
-}
-
-#[derive(Debug, PartialEq)]
-pub enum RuntimeValue {
-    String(String),
-    Integer(i32),
-    Boolean(bool),
-    Unit
 }

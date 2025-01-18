@@ -7,7 +7,7 @@ use crate::interpreter::environment::Environment;
 mod test;
 mod function;
 pub mod value;
-mod environment;
+pub mod environment;
 
 pub fn start(statements: &Vec<AstStatement>) -> Result<(), String> {
     let mut environment = Environment::new();
@@ -24,13 +24,13 @@ fn interpret_statements(environment: &mut Environment, statements: &Vec<AstState
 
 fn evaluate_statement(environment: &mut Environment, statement: &AstStatement) -> Result<(), String> {
     match statement { 
-        AstStatement::Expression { expression } => { evaluate_expression(expression)?; },
+        AstStatement::Expression { expression } => { evaluate_expression(environment, expression)?; },
         AstStatement::Declaration { name, expression } => { 
-            let value = evaluate_expression(expression)?;
+            let value = evaluate_expression(environment, expression)?;
             environment.declare(name.clone(), value)?;
         },
         AstStatement::Reassignment { name, expression } => {
-            let value = evaluate_expression(expression)?;
+            let value = evaluate_expression(environment, expression)?;
             environment.reassign(&name, value)?;
         }
     };
@@ -38,11 +38,11 @@ fn evaluate_statement(environment: &mut Environment, statement: &AstStatement) -
     Ok(())
 }
 
-pub fn evaluate_expression(element: &AstExpression) -> Result<RuntimeValue, String> {
+pub(crate) fn evaluate_expression(environment: &mut Environment, element: &AstExpression) -> Result<RuntimeValue, String> {
     Ok(match element {
         AstExpression::BiOperator { operator, left, right } => {
-            let left_value = evaluate_expression(left)?;
-            let right_value = evaluate_expression(right)?;
+            let left_value = evaluate_expression(environment, left)?;
+            let right_value = evaluate_expression(environment, right)?;
             
             match operator {
                 OperatorType::Equality => RuntimeValue::Boolean(left_value == right_value),
@@ -96,7 +96,7 @@ pub fn evaluate_expression(element: &AstExpression) -> Result<RuntimeValue, Stri
             }
         },
         AstExpression::UnaryOperator { operator, operand } => {
-            let operand_value = evaluate_expression(operand)?;
+            let operand_value = evaluate_expression(environment, operand)?;
             match operator {
                 OperatorType::Minus => {
                     match operand_value {
@@ -122,8 +122,13 @@ pub fn evaluate_expression(element: &AstExpression) -> Result<RuntimeValue, Stri
         },
         AstExpression::StringLiteral { value } => RuntimeValue::String(value.clone()),
         AstExpression::BooleanLiteral { value } => RuntimeValue::Boolean(*value),
-        AstExpression::FunctionCall { name, arguments } => function::invoke_function(name, arguments)?,
-        AstExpression::Symbol { .. } => todo!("Not implemented until variables are added")
+        AstExpression::FunctionCall { name, arguments } => function::invoke_function(environment, name, arguments)?,
+        AstExpression::Symbol { name } => {
+            match environment.get(name.as_str()) {
+                None => return Err(format!("Variable not found: {}", name)),
+                Some(value) => { value.clone() }
+            }
+        }
     })
 }
 
