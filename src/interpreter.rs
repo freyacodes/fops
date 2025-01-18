@@ -6,6 +6,7 @@ use value::RuntimeValue;
 mod test;
 mod function;
 pub mod value;
+mod environment;
 
 pub fn interpret_statements(statements: &Vec<AstStatement>) -> Result<(), String> {
     for statement in statements {
