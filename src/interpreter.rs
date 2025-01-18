@@ -25,7 +25,10 @@ fn interpret_statements(environment: &mut Environment, statements: &Vec<AstState
 fn evaluate_statement(environment: &mut Environment, statement: &AstStatement) -> Result<(), String> {
     match statement { 
         AstStatement::Expression { expression } => { evaluate_expression(expression)?; },
-        AstStatement::Declaration { .. } => todo!("Declarations are not implemented yet"),
+        AstStatement::Declaration { name, expression } => { 
+            let value = evaluate_expression(expression)?;
+            environment.declare(name.clone(), value)?;
+        },
         AstStatement::Reassignment { .. } => todo!("Reassignments are not implemented yet")
     };
     

@@ -27,11 +27,11 @@ impl Environment {
         Ok(())
     }
 
-    pub(super)fn reassign(&mut self, key: String, value: RuntimeValue) -> Result<(), String> {
-        let entry = self.values.entry(key);
-        match entry {
-            Entry::Occupied(_) => { entry.insert_entry(value); },
-            Entry::Vacant(_) => { return Err(format!("Variable '{}' is not found", entry.key())); }
+    pub(super)fn reassign(&mut self, key: &String, value: RuntimeValue) -> Result<(), String> {
+        let option = self.values.get_mut(key);
+        match option {
+            Some(v) => { *v = value },
+            None => { return Err(format!("Variable '{}' is not found", key)); }
         }
         Ok(())
     }
