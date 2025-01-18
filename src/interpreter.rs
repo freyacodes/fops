@@ -29,7 +29,10 @@ fn evaluate_statement(environment: &mut Environment, statement: &AstStatement) -
             let value = evaluate_expression(expression)?;
             environment.declare(name.clone(), value)?;
         },
-        AstStatement::Reassignment { .. } => todo!("Reassignments are not implemented yet")
+        AstStatement::Reassignment { name, expression } => {
+            let value = evaluate_expression(expression)?;
+            environment.reassign(&name, value)?;
+        }
     };
     
     Ok(())
