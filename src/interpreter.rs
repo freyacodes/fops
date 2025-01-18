@@ -14,7 +14,7 @@ pub fn start(statements: &Vec<AstStatement>) -> Result<(), String> {
     interpret_statements(&mut environment, statements)
 }
 
-fn interpret_statements(environment: &mut Environment, statements: &Vec<AstStatement>) -> Result<(), String> {
+pub fn interpret_statements(environment: &mut Environment, statements: &Vec<AstStatement>) -> Result<(), String> {
     for statement in statements {
         evaluate_statement(environment, statement)?;
     }
@@ -38,7 +38,7 @@ fn evaluate_statement(environment: &mut Environment, statement: &AstStatement) -
     Ok(())
 }
 
-pub(crate) fn evaluate_expression(environment: &mut Environment, element: &AstExpression) -> Result<RuntimeValue, String> {
+pub fn evaluate_expression(environment: &mut Environment, element: &AstExpression) -> Result<RuntimeValue, String> {
     Ok(match element {
         AstExpression::BiOperator { operator, left, right } => {
             let left_value = evaluate_expression(environment, left)?;

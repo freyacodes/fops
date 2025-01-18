@@ -4,7 +4,7 @@ use std::io::Write;
 use crate::{ast, interpreter, lexer};
 use crate::interpreter::environment::Environment;
 use crate::interpreter::value::RuntimeValue;
-use crate::lexer::Token;
+use crate::lexer::{Token, TokenType};
 
 pub fn repl() {
     let mut environment = Environment::new();
@@ -17,24 +17,55 @@ pub fn repl() {
         let stdin = io::stdin();
         stdin.read_line(&mut buffer).expect("Failure when reading stdin");
 
-        let lexed = match lexer::lex_from_string(buffer) {
+        let tokens = match lexer::lex_from_string(buffer) {
             Ok(tokens) => tokens.into_iter().collect::<VecDeque<Token>>(),
             Err(str) => { println!("Lexer error: {}", str); continue; }
         };
+        
+        let handle_as_statements = tokens.iter().any(|token| {
+            token.token_type == TokenType::Control && token.contents == ";"
+        });
 
-        let expression = match ast::parse_expression_only(lexed) {
-            Ok(expression) => expression,
-            Err(str) => { println!("Parser error: {}", str); continue; }
-        };
-
-        match interpreter::evaluate_expression(&mut environment, &expression) {
-            Ok(value) => {
-                match value {
-                    RuntimeValue::Unit => {}
-                    _ => println!("{}", value.value_as_string())
-                }
-            }
-            Err(str) => { println!("Runtime error: {}", str); continue; }
+        if handle_as_statements {
+            repl_as_statements(&mut environment, tokens)
+        } else {
+            repl_as_expression(&mut environment, tokens)
         }
+    }
+}
+
+fn repl_as_expression(mut environment: &mut Environment, tokens: VecDeque<Token>) {
+    let expression = match ast::parse_expression_only(tokens) {
+        Ok(expression) => expression,
+        Err(str) => { println!("Parser error: {}", str); return; }
+    };
+
+    match interpreter::evaluate_expression(&mut environment, &expression) {
+        Ok(value) => {
+            match value {
+                RuntimeValue::Unit => {}
+                _ => println!("{}", value.value_as_string())
+            }
+        }
+        Err(str) => { println!("Runtime error: {}", str); return; }
+    }
+}
+
+fn repl_as_statements(mut environment: &mut Environment, mut tokens: VecDeque<Token>) {
+    // Insert a semicolon at the end if there isn't already one
+    if let Some(last_token) = tokens.back() {
+        if last_token.token_type != TokenType::Control && last_token.contents != ";" {
+            tokens.push_back(Token { token_type: TokenType::Control, contents: ";".to_string() });
+        }
+    }
+    
+    let statements = match ast::parse_script(tokens) {
+        Ok(statements) => statements,
+        Err(str) => { println!("Parser error: {}", str); return; }
+    };
+    
+    let result = interpreter::interpret_statements(&mut environment, &statements);
+    if let Err(string) = result {
+        println!("Runtime error: {}", string);
     }
 }
