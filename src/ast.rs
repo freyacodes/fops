@@ -9,6 +9,7 @@ use crate::lexer::Token;
 
 #[derive(PartialEq, Debug)]
 pub enum AstStatement {
+    Block { statements: Vec<AstStatement> },
     Declaration { name: String, expression: Box<AstExpression> },
     Reassignment { name: String, expression: Box<AstExpression> },
     Expression { expression: Box<AstExpression> }

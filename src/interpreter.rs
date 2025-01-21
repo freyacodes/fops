@@ -24,6 +24,7 @@ pub fn interpret_statements(environment: &mut Environment, statements: &Vec<AstS
 
 fn evaluate_statement(environment: &mut Environment, statement: &AstStatement) -> Result<(), String> {
     match statement { 
+        AstStatement::Block { .. } => { todo!() }
         AstStatement::Expression { expression } => { evaluate_expression(environment, expression)?; },
         AstStatement::Declaration { name, expression } => { 
             let value = evaluate_expression(environment, expression)?;
