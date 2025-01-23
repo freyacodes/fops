@@ -104,7 +104,7 @@ fn test_declaration() {
     let mut statements = parse_statements("let four = 4;".to_string());
     let mut environment = Environment::new();
     interpreter::interpret_statements(&mut environment, &mut statements).unwrap();
-    assert_eq!(environment.get(&"four".to_string()), Some(&RuntimeValue::Integer(4)));
+    assert_eq!(environment.get(&"four".to_string()), Some(&Integer(4)));
 }
 
 #[test]
@@ -112,7 +112,7 @@ fn test_reassignment() {
     let mut statements = parse_statements("let four = 4; four = 5;".to_string());
     let mut environment = Environment::new();
     interpreter::interpret_statements(&mut environment, &mut statements).unwrap();
-    assert_eq!(environment.get(&"four".to_string()), Some(&RuntimeValue::Integer(5)));
+    assert_eq!(environment.get(&"four".to_string()), Some(&Integer(5)));
 }
 
 #[test]
@@ -120,5 +120,35 @@ fn test_variable_arithmetic() {
     let mut statements = parse_statements("let minutes = 2; let seconds = minutes * 60;".to_string());
     let mut environment = Environment::new();
     interpreter::interpret_statements(&mut environment, &mut statements).unwrap();
-    assert_eq!(environment.get(&"seconds".to_string()), Some(&RuntimeValue::Integer(120)));
+    assert_eq!(environment.get(&"seconds".to_string()), Some(&Integer(120)));
+}
+
+#[test]
+fn test_group_execution() {
+    let src = r#"
+    let a = 1;
+    {
+        a = 2;
+    }
+    "#.to_string();
+    let mut statements = parse_statements(src);
+    let mut environment = Environment::new();
+    interpreter::interpret_statements(&mut environment, &mut statements).unwrap();
+    assert_eq!(environment.get(&"a".to_string()), Some(&Integer(2)));
+}
+
+#[test]
+fn test_variable_shadowing() {
+    let src = r#"
+    let a = 1;
+    let b = 2;
+    {
+        let a = 3;
+        a = b;
+    }
+    "#.to_string();
+    let mut statements = parse_statements(src);
+    let mut environment = Environment::new();
+    interpreter::interpret_statements(&mut environment, &mut statements).unwrap();
+    assert_eq!(environment.get(&"a".to_string()), Some(&Integer(3)));
 }

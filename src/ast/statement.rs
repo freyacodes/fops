@@ -1,10 +1,10 @@
 use crate::ast::expression::expression;
 use crate::ast::util::consume_control;
 use crate::ast::AstStatement;
-use crate::lexer::Token;
-use std::collections::VecDeque;
 use crate::ast::AstStatement::Block;
+use crate::lexer::Token;
 use crate::lexer::TokenType::{Control, Keyword, Symbol};
+use std::collections::VecDeque;
 
 pub(super) fn statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
     block_statement(tokens)
@@ -90,7 +90,7 @@ fn expression_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, St
 mod test {
     use crate::ast::statement::statement;
     use crate::ast::AstExpression::{FunctionCall, NumberLiteral, StringLiteral};
-    use crate::ast::{AstExpression, AstStatement};
+    use crate::ast::AstStatement;
     use crate::lexer;
 
     #[test]
