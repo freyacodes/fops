@@ -2,10 +2,12 @@ use crate::interpreter::value::RuntimeValue;
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, VecDeque};
 
+#[derive(Debug)]
 pub(super) struct Stack {
     frames: VecDeque<StackFrame>,
 }
 
+#[derive(Debug)]
 struct StackFrame {
     values: HashMap<String, RuntimeValue>,
 }
@@ -41,6 +43,7 @@ impl Stack {
         for frame in self.frames.iter_mut().rev() {
             if let Some(value_ref) = frame.values.get_mut(key) {
                 *value_ref = value;
+                println!("{:?}", self);
                 return Ok(())
             }
         }
@@ -56,9 +59,9 @@ impl Stack {
         if self.frames.len() == 1 {
             panic!("Cannot pop the last frame");
         }
-        self.frames.pop_front().unwrap();
+        self.frames.pop_back().unwrap();
     }
-    
+
     /// Returns the top-level variables
     pub fn dismantle(mut self) -> HashMap<String, RuntimeValue> {
         self.frames.pop_front().unwrap().values
@@ -71,7 +74,7 @@ impl StackFrame {
             values: HashMap::new()
         }
     }
-    
+
     fn new(values: HashMap<String, RuntimeValue>) -> Self {
         StackFrame {
             values

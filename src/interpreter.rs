@@ -4,11 +4,11 @@ use crate::ast::{AstExpression, AstStatement};
 use value::RuntimeValue;
 use crate::interpreter::stack::Stack;
 
+pub mod value;
+mod function;
+mod stack;
 #[cfg(test)]
 mod test;
-mod function;
-pub mod value;
-pub mod stack;
 
 pub struct InterpreterEndState<R> {
     pub globals: HashMap<String, RuntimeValue>,
@@ -51,9 +51,11 @@ pub fn run_expression(globals: HashMap<String, RuntimeValue>, statement: &AstExp
 fn evaluate_statement(stack: &mut Stack, statement: &AstStatement) -> Result<(), String> {
     match statement { 
         AstStatement::Block { statements } => { 
+            stack.push_frame();
             for inner in statements {
                 evaluate_statement(stack, inner)?
             }
+            stack.pop_frame();
         }
         AstStatement::Expression { expression } => { evaluate_expression(stack, expression)?; },
         AstStatement::Declaration { name, expression } => { 
@@ -69,7 +71,7 @@ fn evaluate_statement(stack: &mut Stack, statement: &AstStatement) -> Result<(),
     Ok(())
 }
 
-pub(crate) fn evaluate_expression(stack: &mut Stack, element: &AstExpression) -> Result<RuntimeValue, String> {
+fn evaluate_expression(stack: &mut Stack, element: &AstExpression) -> Result<RuntimeValue, String> {
     Ok(match element {
         AstExpression::BiOperator { operator, left, right } => {
             let left_value = evaluate_expression(stack, left)?;

@@ -142,7 +142,7 @@ fn test_variable_shadowing() {
     let a = 1;
     let b = 2;
     {
-        let a = 3;
+        let b = 3;
         a = b;
     }
     "#.to_string();
