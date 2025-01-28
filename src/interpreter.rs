@@ -1,53 +1,53 @@
 use crate::ast::operator::OperatorType;
 use crate::ast::{AstExpression, AstStatement};
 use value::RuntimeValue;
-use crate::interpreter::environment::Environment;
+use crate::interpreter::stack::Stack;
 
 #[cfg(test)]
 mod test;
 mod function;
 pub mod value;
-pub mod environment;
+pub mod stack;
 
 pub fn start(statements: &Vec<AstStatement>) -> Result<(), String> {
-    let mut environment = Environment::new();
-    interpret_statements(&mut environment, statements)
+    let mut stack = Stack::new();
+    interpret_statements(&mut stack, statements)
 }
 
-pub fn interpret_statements(environment: &mut Environment, statements: &Vec<AstStatement>) -> Result<(), String> {
+pub fn interpret_statements(stack: &mut Stack, statements: &Vec<AstStatement>) -> Result<(), String> {
     for statement in statements {
-        evaluate_statement(environment, statement)?;
+        evaluate_statement(stack, statement)?;
     }
     
     Ok(())
 }
 
-fn evaluate_statement(environment: &mut Environment, statement: &AstStatement) -> Result<(), String> {
+fn evaluate_statement(stack: &mut Stack, statement: &AstStatement) -> Result<(), String> {
     match statement { 
         AstStatement::Block { statements } => { 
             for inner in statements {
-                evaluate_statement(environment, inner)?
+                evaluate_statement(stack, inner)?
             }
         }
-        AstStatement::Expression { expression } => { evaluate_expression(environment, expression)?; },
+        AstStatement::Expression { expression } => { evaluate_expression(stack, expression)?; },
         AstStatement::Declaration { name, expression } => { 
-            let value = evaluate_expression(environment, expression)?;
-            environment.declare(name.clone(), value)?;
+            let value = evaluate_expression(stack, expression)?;
+            stack.declare(name.clone(), value)?;
         },
         AstStatement::Reassignment { name, expression } => {
-            let value = evaluate_expression(environment, expression)?;
-            environment.reassign(&name, value)?;
+            let value = evaluate_expression(stack, expression)?;
+            stack.reassign(&name, value)?;
         }
     };
     
     Ok(())
 }
 
-pub fn evaluate_expression(environment: &mut Environment, element: &AstExpression) -> Result<RuntimeValue, String> {
+pub fn evaluate_expression(stack: &mut Stack, element: &AstExpression) -> Result<RuntimeValue, String> {
     Ok(match element {
         AstExpression::BiOperator { operator, left, right } => {
-            let left_value = evaluate_expression(environment, left)?;
-            let right_value = evaluate_expression(environment, right)?;
+            let left_value = evaluate_expression(stack, left)?;
+            let right_value = evaluate_expression(stack, right)?;
             
             match operator {
                 OperatorType::Equality => RuntimeValue::Boolean(left_value == right_value),
@@ -101,7 +101,7 @@ pub fn evaluate_expression(environment: &mut Environment, element: &AstExpressio
             }
         },
         AstExpression::UnaryOperator { operator, operand } => {
-            let operand_value = evaluate_expression(environment, operand)?;
+            let operand_value = evaluate_expression(stack, operand)?;
             match operator {
                 OperatorType::Minus => {
                     match operand_value {
@@ -127,9 +127,9 @@ pub fn evaluate_expression(environment: &mut Environment, element: &AstExpressio
         },
         AstExpression::StringLiteral { value } => RuntimeValue::String(value.clone()),
         AstExpression::BooleanLiteral { value } => RuntimeValue::Boolean(*value),
-        AstExpression::FunctionCall { name, arguments } => function::invoke_function(environment, name, arguments)?,
+        AstExpression::FunctionCall { name, arguments } => function::invoke_function(stack, name, arguments)?,
         AstExpression::Symbol { name } => {
-            match environment.get(name.as_str()) {
+            match stack.get(name.as_str()) {
                 None => return Err(format!("Variable not found: {}", name)),
                 Some(value) => { value.clone() }
             }

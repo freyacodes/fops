@@ -1,19 +1,19 @@
 use std::io;
 use std::io::Write;
 use crate::ast::AstExpression;
-use crate::interpreter::environment::Environment;
+use crate::interpreter::stack::Stack;
 use crate::interpreter::evaluate_expression;
 use crate::interpreter::value::RuntimeValue;
 
 pub(super) fn invoke_function(
-    environment: &mut Environment,
+    stack: &mut Stack,
     name: &str,
     arguments: &Vec<AstExpression>
 ) -> Result<RuntimeValue, String> {
     match name { 
         "print" | "println" => {
             if arguments.len() != 1 { return Err(format!("Expected 1 argument, got {}", arguments.len())) };
-            let value = evaluate_expression(environment, arguments.get(0).unwrap())?;
+            let value = evaluate_expression(stack, arguments.get(0).unwrap())?;
             let value_string = value.value_as_string();
             
             if name == "println" { 

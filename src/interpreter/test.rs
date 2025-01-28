@@ -2,7 +2,7 @@ use crate::ast::{AstExpression, AstStatement};
 use crate::interpreter::value::RuntimeValue::{Boolean, Integer};
 use crate::interpreter::evaluate_expression;
 use crate::{interpreter, lexer};
-use crate::interpreter::environment::Environment;
+use crate::interpreter::stack::Stack;
 use crate::interpreter::value::RuntimeValue;
 
 fn parse_statements(string: String) -> Vec<AstStatement> {
@@ -16,8 +16,8 @@ fn parse_expression(string: String) -> AstExpression {
 }
 
 fn eval_expression(expression: &AstExpression) -> RuntimeValue {
-    let mut environment = Environment::new();
-    evaluate_expression(&mut environment, expression).unwrap()
+    let mut stack = Stack::new();
+    evaluate_expression(&mut stack, expression).unwrap()
 }
 
 #[test]
@@ -102,25 +102,25 @@ fn test_comparisons() {
 #[test]
 fn test_declaration() {
     let mut statements = parse_statements("let four = 4;".to_string());
-    let mut environment = Environment::new();
-    interpreter::interpret_statements(&mut environment, &mut statements).unwrap();
-    assert_eq!(environment.get(&"four".to_string()), Some(&Integer(4)));
+    let mut stack = Stack::new();
+    interpreter::interpret_statements(&mut stack, &mut statements).unwrap();
+    assert_eq!(stack.get(&"four".to_string()), Some(&Integer(4)));
 }
 
 #[test]
 fn test_reassignment() {
     let mut statements = parse_statements("let four = 4; four = 5;".to_string());
-    let mut environment = Environment::new();
-    interpreter::interpret_statements(&mut environment, &mut statements).unwrap();
-    assert_eq!(environment.get(&"four".to_string()), Some(&Integer(5)));
+    let mut stack = Stack::new();
+    interpreter::interpret_statements(&mut stack, &mut statements).unwrap();
+    assert_eq!(stack.get(&"four".to_string()), Some(&Integer(5)));
 }
 
 #[test]
 fn test_variable_arithmetic() {
     let mut statements = parse_statements("let minutes = 2; let seconds = minutes * 60;".to_string());
-    let mut environment = Environment::new();
-    interpreter::interpret_statements(&mut environment, &mut statements).unwrap();
-    assert_eq!(environment.get(&"seconds".to_string()), Some(&Integer(120)));
+    let mut stack = Stack::new();
+    interpreter::interpret_statements(&mut stack, &mut statements).unwrap();
+    assert_eq!(stack.get(&"seconds".to_string()), Some(&Integer(120)));
 }
 
 #[test]
@@ -132,9 +132,9 @@ fn test_group_execution() {
     }
     "#.to_string();
     let mut statements = parse_statements(src);
-    let mut environment = Environment::new();
-    interpreter::interpret_statements(&mut environment, &mut statements).unwrap();
-    assert_eq!(environment.get(&"a".to_string()), Some(&Integer(2)));
+    let mut stack = Stack::new();
+    interpreter::interpret_statements(&mut stack, &mut statements).unwrap();
+    assert_eq!(stack.get(&"a".to_string()), Some(&Integer(2)));
 }
 
 #[test]
@@ -148,7 +148,7 @@ fn test_variable_shadowing() {
     }
     "#.to_string();
     let mut statements = parse_statements(src);
-    let mut environment = Environment::new();
-    interpreter::interpret_statements(&mut environment, &mut statements).unwrap();
-    assert_eq!(environment.get(&"a".to_string()), Some(&Integer(3)));
+    let mut stack = Stack::new();
+    interpreter::interpret_statements(&mut stack, &mut statements).unwrap();
+    assert_eq!(stack.get(&"a".to_string()), Some(&Integer(3)));
 }

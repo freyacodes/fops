@@ -2,12 +2,12 @@ use std::io;
 use std::collections::VecDeque;
 use std::io::Write;
 use crate::{ast, interpreter, lexer};
-use crate::interpreter::environment::Environment;
+use crate::interpreter::stack::Stack;
 use crate::interpreter::value::RuntimeValue;
 use crate::lexer::{Token, TokenType};
 
 pub fn repl() {
-    let mut environment = Environment::new();
+    let mut stack = Stack::new();
     
     loop {
         print!("> ");
@@ -27,20 +27,20 @@ pub fn repl() {
         });
 
         if handle_as_statements {
-            repl_as_statements(&mut environment, tokens)
+            repl_as_statements(&mut stack, tokens)
         } else {
-            repl_as_expression(&mut environment, tokens)
+            repl_as_expression(&mut stack, tokens)
         }
     }
 }
 
-fn repl_as_expression(mut environment: &mut Environment, tokens: VecDeque<Token>) {
+fn repl_as_expression(mut stack: &mut Stack, tokens: VecDeque<Token>) {
     let expression = match ast::parse_expression_only(tokens) {
         Ok(expression) => expression,
         Err(str) => { println!("Parser error: {}", str); return; }
     };
 
-    match interpreter::evaluate_expression(&mut environment, &expression) {
+    match interpreter::evaluate_expression(&mut stack, &expression) {
         Ok(value) => {
             match value {
                 RuntimeValue::Unit => {}
@@ -51,7 +51,7 @@ fn repl_as_expression(mut environment: &mut Environment, tokens: VecDeque<Token>
     }
 }
 
-fn repl_as_statements(mut environment: &mut Environment, mut tokens: VecDeque<Token>) {
+fn repl_as_statements(mut stack: &mut Stack, mut tokens: VecDeque<Token>) {
     // Insert a semicolon at the end if there isn't already one
     if let Some(last_token) = tokens.back() {
         if last_token.token_type != TokenType::Control && last_token.contents != ";" {
@@ -64,7 +64,7 @@ fn repl_as_statements(mut environment: &mut Environment, mut tokens: VecDeque<To
         Err(str) => { println!("Parser error: {}", str); return; }
     };
     
-    let result = interpreter::interpret_statements(&mut environment, &statements);
+    let result = interpreter::interpret_statements(&mut stack, &statements);
     if let Err(string) = result {
         println!("Runtime error: {}", string);
     }

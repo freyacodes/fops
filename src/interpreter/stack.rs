@@ -2,14 +2,14 @@ use crate::interpreter::value::RuntimeValue;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 
-pub struct Environment {
-    //parent: Option<Box<Environment>>,
+pub struct Stack {
+    //parent: Option<Box<stack>>,
     values: HashMap<String, RuntimeValue>
 }
 
-impl Environment {
+impl Stack {
     pub fn new() -> Self {
-        Environment {
+        Stack {
             values: HashMap::new()
         }
     }
