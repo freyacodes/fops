@@ -1,10 +1,8 @@
 use crate::interpreter::value::RuntimeValue;
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, VecDeque};
-use std::option;
 
-pub struct Stack {
-    //parent: Option<Box<stack>>,
+pub(super) struct Stack {
     frames: VecDeque<StackFrame>,
 }
 
@@ -13,9 +11,9 @@ struct StackFrame {
 }
 
 impl Stack {
-    pub fn new() -> Self {
+    pub fn new(globals: HashMap<String, RuntimeValue>) -> Self {
         let mut frames = VecDeque::new();
-        frames.push_back(StackFrame::new());
+        frames.push_back(StackFrame::new(globals));
         Stack { frames }
     }
 
@@ -51,18 +49,32 @@ impl Stack {
     }
 
     pub fn push_frame(&mut self) {
-        self.frames.push_back(StackFrame::new());
+        self.frames.push_back(StackFrame::new_empty());
     }
 
     pub fn pop_frame(&mut self) {
-        self.frames.pop_front().expect("No frames on the stack");
+        if self.frames.len() == 1 {
+            panic!("Cannot pop the last frame");
+        }
+        self.frames.pop_front().unwrap();
+    }
+    
+    /// Returns the top-level variables
+    pub fn dismantle(mut self) -> HashMap<String, RuntimeValue> {
+        self.frames.pop_front().unwrap().values
     }
 }
 
 impl StackFrame {
-    fn new() -> Self {
+    fn new_empty() -> Self {
         StackFrame {
             values: HashMap::new()
+        }
+    }
+    
+    fn new(values: HashMap<String, RuntimeValue>) -> Self {
+        StackFrame {
+            values
         }
     }
 }

@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::ast::operator::OperatorType;
 use crate::ast::{AstExpression, AstStatement};
 use value::RuntimeValue;
@@ -9,17 +10,42 @@ mod function;
 pub mod value;
 pub mod stack;
 
-pub fn start(statements: &Vec<AstStatement>) -> Result<(), String> {
-    let mut stack = Stack::new();
-    interpret_statements(&mut stack, statements)
+pub struct InterpreterEndState<R> {
+    pub globals: HashMap<String, RuntimeValue>,
+    pub result: Result<R, String>
 }
 
-pub fn interpret_statements(stack: &mut Stack, statements: &Vec<AstStatement>) -> Result<(), String> {
-    for statement in statements {
-        evaluate_statement(stack, statement)?;
+pub fn run(statements: &Vec<AstStatement>) -> InterpreterEndState<()> {
+    run_with_state(statements, HashMap::new())
+}
+
+pub fn run_with_state(statements: &Vec<AstStatement>, globals: HashMap<String, RuntimeValue>) -> InterpreterEndState<()> {
+    let mut stack = Stack::new(globals);
+    for statement in statements { 
+        let result = evaluate_statement(&mut stack, statement);
+        
+        if result.is_err() { 
+            return InterpreterEndState {
+                globals: stack.dismantle(),
+                result
+            }
+        }
     }
     
-    Ok(())
+    InterpreterEndState {
+        globals: stack.dismantle(),
+        result: Ok(())
+    }
+}
+
+pub fn run_expression(globals: HashMap<String, RuntimeValue>, statement: &AstExpression) -> InterpreterEndState<RuntimeValue> {
+    let mut stack = Stack::new(globals);
+    let result = evaluate_expression(&mut stack, statement);
+
+    InterpreterEndState {
+        globals: stack.dismantle(),
+        result
+    }
 }
 
 fn evaluate_statement(stack: &mut Stack, statement: &AstStatement) -> Result<(), String> {
@@ -43,7 +69,7 @@ fn evaluate_statement(stack: &mut Stack, statement: &AstStatement) -> Result<(),
     Ok(())
 }
 
-pub fn evaluate_expression(stack: &mut Stack, element: &AstExpression) -> Result<RuntimeValue, String> {
+pub(crate) fn evaluate_expression(stack: &mut Stack, element: &AstExpression) -> Result<RuntimeValue, String> {
     Ok(match element {
         AstExpression::BiOperator { operator, left, right } => {
             let left_value = evaluate_expression(stack, left)?;

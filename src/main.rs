@@ -26,7 +26,7 @@ fn main() {
             }
         };
 
-        if let Err(error) = interpreter::start(&statements) {
+        if let Err(error) = interpreter::run(&statements).result {
             println!("Runtime error: {}", error);
         }
     } else {
