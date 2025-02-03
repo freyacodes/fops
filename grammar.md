@@ -4,12 +4,16 @@ This uses a variant of BNF
 ```
 program                → statement* EOF ;
 
-statement              → block_statement
+statement              → if_statement
+                       | block_statement
                        | declaration_statement
                        | reassignment_statement
                        | expression_statement ;
 
 block_statement        → "{" statement* "}" ;
+if_statement           → "if" "(" expression ")" statement 
+                         ( "else" "if" )*
+                         ( "else" statement )? ;
 declaration_statement  → "let" IDENTIFIER "=" expression ";" ;
 reassignment_statement → IDENTIFIER "=" expression ";" ;
 expression_statement   → expression ";" ;
