@@ -3,16 +3,23 @@ mod expression;
 mod util;
 mod statement;
 
+use crate::lexer::Token;
 use operator::OperatorType;
 use std::collections::VecDeque;
-use crate::lexer::Token;
 
 #[derive(PartialEq, Debug)]
 pub enum AstStatement {
+    If { conditional_clauses: Vec<ConditionalClause>, else_clause: Option<Box<AstStatement>> },
     Block { statements: Vec<AstStatement> },
     Declaration { name: String, expression: Box<AstExpression> },
     Reassignment { name: String, expression: Box<AstExpression> },
     Expression { expression: Box<AstExpression> }
+}
+
+#[derive(PartialEq, Debug)]
+pub struct ConditionalClause {
+    pub condition: Box<AstExpression>,
+    pub statement: Box<AstStatement>
 }
 
 #[derive(PartialEq, Debug)]

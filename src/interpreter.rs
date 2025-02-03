@@ -1,8 +1,8 @@
-use std::collections::HashMap;
 use crate::ast::operator::OperatorType;
 use crate::ast::{AstExpression, AstStatement};
-use value::RuntimeValue;
 use crate::interpreter::stack::Stack;
+use std::collections::HashMap;
+use value::RuntimeValue;
 
 pub mod value;
 mod function;
@@ -49,7 +49,8 @@ pub fn run_expression(globals: HashMap<String, RuntimeValue>, statement: &AstExp
 }
 
 fn evaluate_statement(stack: &mut Stack, statement: &AstStatement) -> Result<(), String> {
-    match statement { 
+    match statement {
+        AstStatement::If { .. } => todo!(),
         AstStatement::Block { statements } => { 
             stack.push_frame();
             for inner in statements {
