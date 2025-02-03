@@ -24,9 +24,9 @@ fn block_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String>
 
                 if next_token.token_type == Control && next_token.contents == "}" {
                     tokens.pop_front();
-                    return Ok(Block { statements })
+                    return Ok(Block { statements });
                 }
-                
+
                 statements.push(statement(tokens)?)
             }
         }
@@ -90,8 +90,36 @@ fn expression_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, St
 mod test {
     use crate::ast::statement::statement;
     use crate::ast::AstExpression::{FunctionCall, NumberLiteral, StringLiteral};
-    use crate::ast::AstStatement;
+    use crate::ast::AstStatement::{Block, If};
+    use crate::ast::{AstExpression, AstStatement, ConditionalClause};
     use crate::lexer;
+
+    #[test]
+    fn test_if_statement() {
+        let source = r#"""
+        if (a) {
+        } else if (b) {
+        } else {
+        }
+        """#;
+        let mut lexed = lexer::lex_from_string(source.to_string()).unwrap();
+        let statement = statement(&mut lexed).expect("Expected to return Ok");
+
+        assert!(lexed.is_empty());
+        assert_eq!(statement, If {
+            conditional_clauses: vec![
+                ConditionalClause {
+                    condition: Box::new(AstExpression::Symbol { name: "a".to_string() }),
+                    statement: Box::new(Block { statements: vec![] }),
+                },
+                ConditionalClause {
+                    condition: Box::new(AstExpression::Symbol { name: "b".to_string() }),
+                    statement: Box::new(Block { statements: vec![] }),
+                }
+            ],
+            else_clause: Some(Box::new(Block { statements: vec![] })),
+        });
+    }
 
     #[test]
     fn test_block_statement() {
