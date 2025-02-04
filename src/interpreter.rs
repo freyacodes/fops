@@ -1,9 +1,10 @@
 use crate::ast::operator::OperatorType;
-use crate::ast::{AstExpression, AstStatement};
+use crate::ast::{AstExpression, AstStatement, LogicalOperator};
 use crate::interpreter::stack::Stack;
 use crate::interpreter::value::RuntimeValue::Boolean;
 use std::collections::HashMap;
 use value::RuntimeValue;
+use LogicalOperator::{And, Or};
 
 pub mod value;
 mod function;
@@ -86,30 +87,41 @@ fn evaluate_statement(stack: &mut Stack, statement: &AstStatement) -> Result<(),
 
 fn evaluate_expression(stack: &mut Stack, element: &AstExpression) -> Result<RuntimeValue, String> {
     Ok(match element {
+        AstExpression::Logical { operator, left, right } => {
+            let left_value = evaluate_expression(stack, left)?;
+            match operator {
+                And => {
+                    if left_value != Boolean(true) { return Ok(Boolean(false)) }
+                    Boolean(evaluate_expression(stack, right)? == Boolean(true))
+                }
+                Or => {
+                    if left_value == Boolean(true) { return Ok(Boolean(true)) }
+                    Boolean(evaluate_expression(stack, right)? == Boolean(true))
+                }
+            }
+        },
         AstExpression::BiOperator { operator, left, right } => {
             let left_value = evaluate_expression(stack, left)?;
             let right_value = evaluate_expression(stack, right)?;
             
             match operator {
-                OperatorType::Or => todo!(),
-                OperatorType::And => todo!(),
-                OperatorType::Equality => RuntimeValue::Boolean(left_value == right_value),
-                OperatorType::Inequality => RuntimeValue::Boolean(left_value != right_value),
+                OperatorType::Equality => Boolean(left_value == right_value),
+                OperatorType::Inequality => Boolean(left_value != right_value),
                 OperatorType::LessThan => {
                     let (l, r) = match_two_integers(&left_value, &right_value)?;
-                    RuntimeValue::Boolean(l < r)
+                    Boolean(l < r)
                 }
                 OperatorType::LessThanOrEqual => {
                     let (l, r) = match_two_integers(&left_value, &right_value)?;
-                    RuntimeValue::Boolean(l <= r)
+                    Boolean(l <= r)
                 }
                 OperatorType::GreaterThan => {
                     let (l, r) = match_two_integers(&left_value, &right_value)?;
-                    RuntimeValue::Boolean(l > r)
+                    Boolean(l > r)
                 }
                 OperatorType::GreaterThanOrEqual => {
                     let (l, r) = match_two_integers(&left_value, &right_value)?;
-                    RuntimeValue::Boolean(l >= r)
+                    Boolean(l >= r)
                 }
                 OperatorType::Multiplication => {
                     let (l, r) = match_two_integers(&left_value, &right_value)?;
@@ -154,7 +166,7 @@ fn evaluate_expression(stack: &mut Stack, element: &AstExpression) -> Result<Run
                 },
                 OperatorType::Bang => {
                     match operand_value {
-                        RuntimeValue::Boolean(b) => RuntimeValue::Boolean(!b),
+                        Boolean(b) => Boolean(!b),
                         _ => return error_expected_boolean(&operand_value)
                     }
                 },
@@ -169,7 +181,7 @@ fn evaluate_expression(stack: &mut Stack, element: &AstExpression) -> Result<Run
             }
         },
         AstExpression::StringLiteral { value } => RuntimeValue::String(value.clone()),
-        AstExpression::BooleanLiteral { value } => RuntimeValue::Boolean(*value),
+        AstExpression::BooleanLiteral { value } => Boolean(*value),
         AstExpression::FunctionCall { name, arguments } => function::invoke_function(stack, name, arguments)?,
         AstExpression::Symbol { name } => {
             match stack.get(name.as_str()) {

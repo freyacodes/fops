@@ -2,9 +2,6 @@ use std::fmt;
 
 #[derive(PartialEq, Debug)]
 pub enum OperatorType {
-    Or,
-    And,
-    
     Equality,
     Inequality,
     

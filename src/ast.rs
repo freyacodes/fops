@@ -24,6 +24,7 @@ pub struct ConditionalClause {
 
 #[derive(PartialEq, Debug)]
 pub enum AstExpression {
+    Logical { operator: LogicalOperator, left: Box<AstExpression>, right: Box<AstExpression> },
     BiOperator { operator: OperatorType, left: Box<AstExpression>, right: Box<AstExpression> },
     UnaryOperator { operator: OperatorType, operand: Box<AstExpression> },
     NumberLiteral { value: String },
@@ -32,6 +33,9 @@ pub enum AstExpression {
     Symbol { name: String },
     FunctionCall { name: String, arguments: Vec<AstExpression> }
 }
+
+#[derive(PartialEq, Debug)]
+pub enum LogicalOperator { And, Or }
 
 pub fn parse_script(mut tokens: VecDeque<Token>) -> Result<Vec<AstStatement>, String> {
     let mut statements: Vec<AstStatement> = Vec::new();

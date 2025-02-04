@@ -1,6 +1,7 @@
-use crate::ast::operator::OperatorType::{And, Bang, Division, Equality, GreaterThan, GreaterThanOrEqual, Inequality, LessThan, LessThanOrEqual, Minus, Modulus, Multiplication, Or, Plus};
+use crate::ast::operator::OperatorType::{Bang, Division, Equality, GreaterThan, GreaterThanOrEqual, Inequality, LessThan, LessThanOrEqual, Minus, Modulus, Multiplication, Plus};
 use crate::ast::util::{consume_control, match_control};
-use crate::ast::AstExpression::{BiOperator, BooleanLiteral, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
+use crate::ast::AstExpression::{BiOperator, BooleanLiteral, Logical, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
+use crate::ast::LogicalOperator::{And, Or};
 use crate::ast::{util, AstExpression};
 use crate::lexer::{Token, TokenType};
 use std::collections::VecDeque;
@@ -11,16 +12,16 @@ pub(super) fn expression(tokens: &mut VecDeque<Token>) -> Result<AstExpression, 
 
 fn logic_or(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
     let mut expression = logic_and(tokens)?;
-    
+
     while match_control(tokens, "||") {
         let right = logic_and(tokens)?;
-        expression = BiOperator {
+        expression = Logical {
             operator: Or,
             left: Box::new(expression),
             right: Box::new(right),
         }
     }
-    
+
     Ok(expression)
 }
 
@@ -29,7 +30,7 @@ fn logic_and(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
 
     while match_control(tokens, "&&") {
         let right = equality(tokens)?;
-        expression = BiOperator {
+        expression = Logical {
             operator: And,
             left: Box::new(expression),
             right: Box::new(right),
@@ -177,7 +178,8 @@ mod test {
     use crate::ast::expression::expression;
     use crate::ast::operator::OperatorType;
     use crate::ast::operator::OperatorType::{Division, Multiplication};
-    use crate::ast::AstExpression::{BiOperator, FunctionCall, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
+    use crate::ast::AstExpression::{BiOperator, FunctionCall, Logical, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
+    use crate::ast::LogicalOperator::{And, Or};
     use crate::{ast, lexer};
     use std::collections::VecDeque;
 
@@ -216,10 +218,10 @@ mod test {
     #[test]
     fn test_logical_expressions() {
         let lexed = lexer::lex_from_string("a && b || c".to_string()).unwrap();
-        let expected = BiOperator {
-            operator: OperatorType::Or,
-            left: Box::new(BiOperator {
-                operator: OperatorType::And,
+        let expected = Logical {
+            operator: Or,
+            left: Box::new(Logical {
+                operator: And,
                 left: Box::new(Symbol { name: "a".to_string() }),
                 right: Box::new(Symbol { name: "b".to_string() }),
             }),
