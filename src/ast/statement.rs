@@ -1,12 +1,41 @@
 use crate::ast::expression::expression;
-use crate::ast::util::consume_control;
-use crate::ast::AstStatement;
-use crate::ast::AstStatement::Block;
+use crate::ast::util::{consume_control, match_keyword};
+use crate::ast::AstStatement::{Block, If};
+use crate::ast::{AstStatement, ConditionalClause};
 use crate::lexer::Token;
 use crate::lexer::TokenType::{Control, Keyword, Symbol};
 use std::collections::VecDeque;
 
 pub(super) fn statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
+    if_statement(tokens)
+}
+
+fn if_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
+    /// After the keywords
+    fn conditional_clause(tokens: &mut VecDeque<Token>) -> Result<ConditionalClause, String> {
+        consume_control(tokens, "(")?;
+        let condition = expression(tokens)?;
+        consume_control(tokens, ")")?;
+        let statement = statement(tokens)?;
+        Ok(ConditionalClause { condition: Box::new(condition), statement: Box::new(statement) })
+    }
+
+    if match_keyword(tokens, "if") {
+        let mut conditional_clauses = vec![conditional_clause(tokens)?];
+
+        loop {
+            if !match_keyword(tokens, "else") { break; }
+            if match_keyword(tokens, "if") { 
+                conditional_clauses.push(conditional_clause(tokens)?);
+            } else {
+                let else_clause = Some(Box::new(statement(tokens)?));
+                return Ok(If { conditional_clauses, else_clause })
+            }
+        }
+        
+        return Ok(If { conditional_clauses, else_clause: None })
+    }
+
     block_statement(tokens)
 }
 
@@ -96,12 +125,12 @@ mod test {
 
     #[test]
     fn test_if_statement() {
-        let source = r#"""
+        let source = r#"
         if (a) {
         } else if (b) {
         } else {
         }
-        """#;
+        "#;
         let mut lexed = lexer::lex_from_string(source.to_string()).unwrap();
         let statement = statement(&mut lexed).expect("Expected to return Ok");
 

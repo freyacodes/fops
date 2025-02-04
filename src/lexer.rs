@@ -4,7 +4,7 @@ use std::path::Path;
 
 const CONTROL_CHARACTERS: [char; 13] = ['+', '-', '*', '/', '!', '=', '<', '>', '(', ')', '{', '}', ';'];
 const MULTICHAR_OPERATORS: [char; 4] = ['=', '!', '<', '>'];
-const RESERVED_KEYWORDS: [&str; 2] = ["let", "if"];
+const RESERVED_KEYWORDS: [&str; 3] = ["let", "if", "else"];
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum TokenType {
@@ -138,8 +138,8 @@ fn lex_line(line: &str, line_index: usize) -> Result<Vec<Token>, String> {
 
 #[cfg(test)]
 mod test {
+    use crate::lexer::TokenType::{Control, Keyword, Number, StringLiteral, Symbol};
     use crate::lexer::{lex_line, Token};
-    use crate::lexer::TokenType::{Number, Control, StringLiteral, Symbol, Keyword};
 
     #[test]
     fn test_string_assignment() {

@@ -131,7 +131,7 @@ fn primary(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
         }
         if next_token.token_type == TokenType::Control && next_token.contents == "(" {
             let expression = expression(tokens)?;
-            if !util::match_special(tokens, ")") {
+            if !util::match_control(tokens, ")") {
                 return Err("Expected parenthesis close ')'".to_string());
             }
             return Ok(expression);
