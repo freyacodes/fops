@@ -1,6 +1,7 @@
 use crate::ast::operator::OperatorType;
 use crate::ast::{AstExpression, AstStatement};
 use crate::interpreter::stack::Stack;
+use crate::interpreter::value::RuntimeValue::Boolean;
 use std::collections::HashMap;
 use value::RuntimeValue;
 
@@ -50,14 +51,25 @@ pub fn run_expression(globals: HashMap<String, RuntimeValue>, statement: &AstExp
 
 fn evaluate_statement(stack: &mut Stack, statement: &AstStatement) -> Result<(), String> {
     match statement {
-        AstStatement::If { .. } => todo!(),
+        AstStatement::If { conditional_clauses, else_clause } => {
+            for clause in conditional_clauses {
+                let condition = evaluate_expression(stack, clause.condition.as_ref())?;
+                if condition == Boolean(true) {
+                    return evaluate_statement(stack, clause.statement.as_ref());
+                }
+            }
+            return match else_clause {
+                None => Ok(()),
+                Some(else_statement) => evaluate_statement(stack, else_statement)
+            }
+        },
         AstStatement::Block { statements } => { 
             stack.push_frame();
             for inner in statements {
                 evaluate_statement(stack, inner)?
             }
             stack.pop_frame();
-        }
+        },
         AstStatement::Expression { expression } => { evaluate_expression(stack, expression)?; },
         AstStatement::Declaration { name, expression } => { 
             let value = evaluate_expression(stack, expression)?;
