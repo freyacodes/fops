@@ -182,4 +182,19 @@ mod test {
 
         assert_eq!(ast::parse_expression_only(VecDeque::from(lexed)), Ok(expected));
     }
+
+    #[test]
+    fn test_logical_expressions() {
+        let lexed = lexer::lex_from_string("a && b || c".to_string()).unwrap();
+        let expected = BiOperator {
+            operator: OperatorType::Or,
+            left: Box::new(BiOperator {
+                operator: OperatorType::And,
+                left: Box::new(Symbol { name: "a".to_string() }),
+                right: Box::new(Symbol { name: "b".to_string() }),
+            }),
+            right: Box::new(Symbol { name: "c".to_string() }),
+        };
+        assert_eq!(ast::parse_expression_only(VecDeque::from(lexed)), Ok(expected));
+    }
 }
