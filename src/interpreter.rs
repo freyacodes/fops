@@ -91,6 +91,8 @@ fn evaluate_expression(stack: &mut Stack, element: &AstExpression) -> Result<Run
             let right_value = evaluate_expression(stack, right)?;
             
             match operator {
+                OperatorType::Or => todo!(),
+                OperatorType::And => todo!(),
                 OperatorType::Equality => RuntimeValue::Boolean(left_value == right_value),
                 OperatorType::Inequality => RuntimeValue::Boolean(left_value != right_value),
                 OperatorType::LessThan => {

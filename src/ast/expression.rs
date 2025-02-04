@@ -6,32 +6,6 @@ use crate::lexer::{Token, TokenType};
 use std::collections::VecDeque;
 
 pub(super) fn expression(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
-    function_call(tokens)
-}
-
-fn function_call(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
-    if let Some(first) = tokens.get(0) {
-        if let Some(second) = tokens.get(1) {
-            if first.token_type == TokenType::Symbol
-                && second.token_type == TokenType::Control
-                && second.contents == "(" {
-                // Remove already matched tokens
-                let name = tokens.pop_front().unwrap();
-                tokens.pop_front().unwrap();
-
-                // Currently only one argument is supported
-                let argument = expression(tokens)?;
-
-                consume_control(tokens, ")")?;
-
-                return Ok(AstExpression::FunctionCall {
-                    name: name.contents,
-                    arguments: vec![argument],
-                });
-            }
-        }
-    }
-
     equality(tokens)
 }
 
@@ -107,7 +81,33 @@ fn unary(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
         });
     }
 
+    if let Some(first) = tokens.get(0) {
+        if let Some(second) = tokens.get(1) {
+            if first.token_type == TokenType::Symbol
+                && second.token_type == TokenType::Control
+                && second.contents == "(" {
+                return call(tokens)
+            }
+        }
+    }
+
     primary(tokens)
+}
+
+fn call(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
+    // Remove already matched tokens
+    let name = tokens.pop_front().unwrap();
+    tokens.pop_front().unwrap();
+
+    // Currently only one argument is supported
+    let argument = expression(tokens)?;
+
+    consume_control(tokens, ")")?;
+
+    Ok(AstExpression::FunctionCall {
+        name: name.contents,
+        arguments: vec![argument],
+    })
 }
 
 fn primary(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
