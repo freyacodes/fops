@@ -177,3 +177,11 @@ fn test_if_statements() {
     test(false, true, 2);
     test(false, false, 3);
 }
+
+#[test]
+fn test_logical_expressions() {
+    assert_eq!(eval_expression("4 == 4 && true"), Boolean(true));
+    assert_eq!(eval_expression("4 != 4 && true"), Boolean(false));
+    assert_eq!(eval_expression("4 != 4 || true"), Boolean(true));
+    assert_eq!(eval_expression("true && false || true"), Boolean(true));
+}
