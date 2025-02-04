@@ -148,3 +148,32 @@ fn test_variable_shadowing() {
     result.unwrap();
     assert_eq!(globals.get(&"a".to_string()), Some(&Integer(3)));
 }
+
+#[test]
+fn test_if_statements() {
+    let src = r#"
+    let result = 0;
+    if (condition1) {
+        result = 1;
+    } else if (condition2) {
+        result = 2;
+    } else {
+        result = 3;
+    }
+    "#;
+
+    let statements = parse_statements(src);
+
+    let test = |condition1: bool, condition2: bool, expected: i32| {
+        let mut globals = HashMap::new();
+        globals.insert("condition1".to_string(), Boolean(condition1));
+        globals.insert("condition2".to_string(), Boolean(condition2));
+        let InterpreterEndState { globals, result } = interpreter::run_with_state(&statements, globals);
+        result.unwrap();
+        assert_eq!(globals.get(&"result".to_string()), Some(&Integer(expected)));
+    };
+
+    test(true, true, 1);
+    test(false, true, 2);
+    test(false, false, 3);
+}

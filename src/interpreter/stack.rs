@@ -39,7 +39,7 @@ impl Stack {
         Ok(())
     }
 
-    pub fn reassign(&mut self, key: &String, value: RuntimeValue) -> Result<(), String> {
+    pub fn reassign(&mut self, key: &str, value: RuntimeValue) -> Result<(), String> {
         for frame in self.frames.iter_mut().rev() {
             if let Some(value_ref) = frame.values.get_mut(key) {
                 *value_ref = value;
