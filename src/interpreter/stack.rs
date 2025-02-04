@@ -43,7 +43,6 @@ impl Stack {
         for frame in self.frames.iter_mut().rev() {
             if let Some(value_ref) = frame.values.get_mut(key) {
                 *value_ref = value;
-                println!("{:?}", self);
                 return Ok(())
             }
         }
