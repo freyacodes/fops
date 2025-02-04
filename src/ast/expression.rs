@@ -1,12 +1,42 @@
-use crate::ast::operator::OperatorType::{Bang, Division, Equality, GreaterThan, GreaterThanOrEqual, Inequality, LessThan, LessThanOrEqual, Minus, Modulus, Multiplication, Plus};
-use crate::ast::util::consume_control;
-use crate::ast::AstExpression::{BooleanLiteral, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
+use crate::ast::operator::OperatorType::{And, Bang, Division, Equality, GreaterThan, GreaterThanOrEqual, Inequality, LessThan, LessThanOrEqual, Minus, Modulus, Multiplication, Or, Plus};
+use crate::ast::util::{consume_control, match_control};
+use crate::ast::AstExpression::{BiOperator, BooleanLiteral, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
 use crate::ast::{util, AstExpression};
 use crate::lexer::{Token, TokenType};
 use std::collections::VecDeque;
 
 pub(super) fn expression(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
-    equality(tokens)
+    logic_or(tokens)
+}
+
+fn logic_or(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
+    let mut expression = logic_and(tokens)?;
+    
+    while match_control(tokens, "||") {
+        let right = logic_and(tokens)?;
+        expression = BiOperator {
+            operator: Or,
+            left: Box::new(expression),
+            right: Box::new(right),
+        }
+    }
+    
+    Ok(expression)
+}
+
+fn logic_and(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
+    let mut expression = equality(tokens)?;
+
+    while match_control(tokens, "&&") {
+        let right = equality(tokens)?;
+        expression = BiOperator {
+            operator: And,
+            left: Box::new(expression),
+            right: Box::new(right),
+        }
+    }
+
+    Ok(expression)
 }
 
 fn equality(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
@@ -14,7 +44,7 @@ fn equality(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
 
     loop {
         if let Some(operator) = util::match_operator(tokens, [Equality, Inequality]) {
-            expression = AstExpression::BiOperator {
+            expression = BiOperator {
                 operator,
                 left: Box::new(expression),
                 right: Box::new(comparison(tokens)?),
@@ -30,7 +60,7 @@ fn comparison(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
 
     loop {
         if let Some(operator) = util::match_operator(tokens, [LessThan, GreaterThan, LessThanOrEqual, GreaterThanOrEqual]) {
-            expression = AstExpression::BiOperator {
+            expression = BiOperator {
                 operator,
                 left: Box::new(expression),
                 right: Box::new(factor(tokens)?),
@@ -46,7 +76,7 @@ fn term(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
 
     loop {
         if let Some(operator) = util::match_operator(tokens, [Plus, Minus]) {
-            expression = AstExpression::BiOperator {
+            expression = BiOperator {
                 operator,
                 left: Box::new(expression),
                 right: Box::new(factor(tokens)?),
@@ -62,7 +92,7 @@ fn factor(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
 
     loop {
         if let Some(operator) = util::match_operator(tokens, [Multiplication, Division, Modulus]) {
-            expression = AstExpression::BiOperator {
+            expression = BiOperator {
                 operator,
                 left: Box::new(expression),
                 right: Box::new(unary(tokens)?),
@@ -131,7 +161,7 @@ fn primary(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
         }
         if next_token.token_type == TokenType::Control && next_token.contents == "(" {
             let expression = expression(tokens)?;
-            if !util::match_control(tokens, ")") {
+            if !match_control(tokens, ")") {
                 return Err("Expected parenthesis close ')'".to_string());
             }
             return Ok(expression);

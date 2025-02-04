@@ -2,8 +2,8 @@ use std::collections::VecDeque;
 use std::fs;
 use std::path::Path;
 
-const CONTROL_CHARACTERS: [char; 13] = ['+', '-', '*', '/', '!', '=', '<', '>', '(', ')', '{', '}', ';'];
-const MULTICHAR_OPERATORS: [char; 4] = ['=', '!', '<', '>'];
+const CONTROL_CHARACTERS: [char; 15] = ['+', '-', '*', '/', '!', '=', '<', '>', '(', ')', '{', '}', ';', '&', '|'];
+const MULTICHAR_OPERATORS: [char; 6] = ['=', '!', '<', '>', '&', '|'];
 const RESERVED_KEYWORDS: [&str; 3] = ["let", "if", "else"];
 
 #[derive(PartialEq, Copy, Clone, Debug)]
