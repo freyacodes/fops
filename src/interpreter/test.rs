@@ -1,4 +1,4 @@
-use crate::ast::{AstExpression, AstStatement};
+use crate::ast::{parse_expression_only, AstStatement};
 use crate::interpreter::value::RuntimeValue;
 use crate::interpreter::value::RuntimeValue::{Boolean, Integer};
 use crate::interpreter::{run_expression, InterpreterEndState};
@@ -10,57 +10,54 @@ fn parse_statements(string: String) -> Vec<AstStatement> {
     crate::ast::parse_script(lexed).expect("Parsing failed")
 }
 
-fn parse_expression(string: String) -> AstExpression {
-    let lexed = lexer::lex_from_string(string).unwrap();
-    crate::ast::parse_expression_only(lexed).expect("Parsing failed")
-}
-
-fn eval_expression(expression: &AstExpression) -> RuntimeValue {
-    run_expression(HashMap::new(), expression).result.unwrap()
+fn eval_expression(string: &str) -> RuntimeValue {
+    let lexed = lexer::lex_from_string(string.to_string()).unwrap();
+    let expression = parse_expression_only(lexed).expect("Parsing failed");
+    run_expression(HashMap::new(), &expression).result.unwrap()
 }
 
 #[test]
 fn test_unary() {
-    assert_eq!(eval_expression(&parse_expression("-40".to_string())), Integer(-40));
-    assert_eq!(eval_expression(&parse_expression("--40".to_string())), Integer(40));
+    assert_eq!(eval_expression("-40"), Integer(-40));
+    assert_eq!(eval_expression("--40"), Integer(40));
 }
 
 #[test]
 fn test_addition() {
-    assert_eq!(eval_expression(&parse_expression("5 + 2".to_string())), Integer(7));
+    assert_eq!(eval_expression("5 + 2"), Integer(7));
 }
 
 #[test]
 fn test_division() {
-    assert_eq!(eval_expression(&parse_expression("7 / 2".to_string())), Integer(3));
-    assert_eq!(eval_expression(&parse_expression("7 / -2".to_string())), Integer(-3));
+    assert_eq!(eval_expression("7 / 2"), Integer(3));
+    assert_eq!(eval_expression("7 / -2"), Integer(-3));
 }
 
 #[test]
 fn test_equality() {
-    assert_eq!(eval_expression(&parse_expression("5 == 2 + 3".to_string())), Boolean(true));
-    assert_eq!(eval_expression(&parse_expression("6 == 2 + 3".to_string())), Boolean(false));
-    assert_eq!(eval_expression(&parse_expression("6 == \"foo\"".to_string())), Boolean(false));
+    assert_eq!(eval_expression("5 == 2 + 3"), Boolean(true));
+    assert_eq!(eval_expression("6 == 2 + 3"), Boolean(false));
+    assert_eq!(eval_expression("6 == \"foo\""), Boolean(false));
 }
 
 #[test]
 fn test_inequality() {
-    assert_eq!(eval_expression(&parse_expression("5 != 6".to_string())), Boolean(true));
-    assert_eq!(eval_expression(&parse_expression("5 != 2 + 3".to_string())), Boolean(false));
-    assert_eq!(eval_expression(&parse_expression("6 != 2 + 3".to_string())), Boolean(true));
-    assert_eq!(eval_expression(&parse_expression("6 != \"foo\"".to_string())), Boolean(true));
+    assert_eq!(eval_expression("5 != 6"), Boolean(true));
+    assert_eq!(eval_expression("5 != 2 + 3"), Boolean(false));
+    assert_eq!(eval_expression("6 != 2 + 3"), Boolean(true));
+    assert_eq!(eval_expression("6 != \"foo\""), Boolean(true));
 }
 
 #[test]
 fn test_not_operator() {
-    assert_eq!(eval_expression(&parse_expression("!true".to_string())), Boolean(false));
-    assert_eq!(eval_expression(&parse_expression("!false".to_string())), Boolean(true));
+    assert_eq!(eval_expression("!true"), Boolean(false));
+    assert_eq!(eval_expression("!false"), Boolean(true));
 }
 
 #[test]
 fn test_string_string_concatenation() {
     assert_eq!(
-        eval_expression(&parse_expression("\"foo\" + \"bar\"".to_string())),
+        eval_expression("\"foo\" + \"bar\""),
         RuntimeValue::String("foobar".to_string())
     );
 }
@@ -68,7 +65,7 @@ fn test_string_string_concatenation() {
 #[test]
 fn test_string_int_concatenation() {
     assert_eq!(
-        eval_expression(&parse_expression("\"foo\" + 5".to_string())),
+        eval_expression("\"foo\" + 5"),
         RuntimeValue::String("foo5".to_string())
     );
 }
@@ -76,26 +73,26 @@ fn test_string_int_concatenation() {
 #[test]
 fn test_string_boolean_concatenation() {
     assert_eq!(
-        eval_expression(&parse_expression("\"foo\" + false".to_string())),
+        eval_expression("\"foo\" + false"),
         RuntimeValue::String("foofalse".to_string())
     );
 }
 
 #[test]
 fn test_comparisons() {
-    assert_eq!(eval_expression(&parse_expression("5 < 10".to_string())), Boolean(true));
-    assert_eq!(eval_expression(&parse_expression("10 < 5".to_string())), Boolean(false));
+    assert_eq!(eval_expression("5 < 10"), Boolean(true));
+    assert_eq!(eval_expression("10 < 5"), Boolean(false));
     
-    assert_eq!(eval_expression(&parse_expression("10 > 5".to_string())), Boolean(true));
-    assert_eq!(eval_expression(&parse_expression("5 > 10".to_string())), Boolean(false));
+    assert_eq!(eval_expression("10 > 5"), Boolean(true));
+    assert_eq!(eval_expression("5 > 10"), Boolean(false));
     
-    assert_eq!(eval_expression(&parse_expression("5 <= 10".to_string())), Boolean(true));
-    assert_eq!(eval_expression(&parse_expression("10 <= 5".to_string())), Boolean(false));
-    assert_eq!(eval_expression(&parse_expression("10 <= 10".to_string())), Boolean(true));
+    assert_eq!(eval_expression("5 <= 10"), Boolean(true));
+    assert_eq!(eval_expression("10 <= 5"), Boolean(false));
+    assert_eq!(eval_expression("10 <= 10"), Boolean(true));
     
-    assert_eq!(eval_expression(&parse_expression("10 >= 5".to_string())), Boolean(true));
-    assert_eq!(eval_expression(&parse_expression("5 >= 10".to_string())), Boolean(false));
-    assert_eq!(eval_expression(&parse_expression("10 >= 10".to_string())), Boolean(true));
+    assert_eq!(eval_expression("10 >= 5"), Boolean(true));
+    assert_eq!(eval_expression("5 >= 10"), Boolean(false));
+    assert_eq!(eval_expression("10 >= 10"), Boolean(true));
 }
 
 #[test]
