@@ -5,8 +5,8 @@ use crate::interpreter::{run_expression, InterpreterEndState};
 use crate::{interpreter, lexer};
 use std::collections::HashMap;
 
-fn parse_statements(string: String) -> Vec<AstStatement> {
-    let lexed = lexer::lex_from_string(string).unwrap();
+fn parse_statements(string: &str) -> Vec<AstStatement> {
+    let lexed = lexer::lex_from_string(string.to_string()).unwrap();
     crate::ast::parse_script(lexed).expect("Parsing failed")
 }
 
@@ -97,7 +97,7 @@ fn test_comparisons() {
 
 #[test]
 fn test_declaration() {
-    let mut statements = parse_statements("let four = 4;".to_string());
+    let mut statements = parse_statements("let four = 4;");
     let InterpreterEndState { globals, result } = interpreter::run(&mut statements);
     result.unwrap();
     assert_eq!(globals.get(&"four".to_string()), Some(&Integer(4)));
@@ -105,7 +105,7 @@ fn test_declaration() {
 
 #[test]
 fn test_reassignment() {
-    let mut statements = parse_statements("let four = 4; four = 5;".to_string());
+    let mut statements = parse_statements("let four = 4; four = 5;");
     let InterpreterEndState { globals, result } = interpreter::run(&mut statements);
     result.unwrap();
     assert_eq!(globals.get(&"four".to_string()), Some(&Integer(5)));
@@ -113,7 +113,7 @@ fn test_reassignment() {
 
 #[test]
 fn test_variable_arithmetic() {
-    let mut statements = parse_statements("let minutes = 2; let seconds = minutes * 60;".to_string());
+    let mut statements = parse_statements("let minutes = 2; let seconds = minutes * 60;");
     let InterpreterEndState { globals, result } = interpreter::run(&mut statements);
     result.unwrap();
     assert_eq!(globals.get(&"seconds".to_string()), Some(&Integer(120)));
@@ -126,7 +126,7 @@ fn test_group_execution() {
     {
         a = 2;
     }
-    "#.to_string();
+    "#;
     let mut statements = parse_statements(src);
     let InterpreterEndState { globals, result } = interpreter::run(&mut statements);
     result.unwrap();
@@ -142,7 +142,7 @@ fn test_variable_shadowing() {
         let b = 3;
         a = b;
     }
-    "#.to_string();
+    "#;
     let mut statements = parse_statements(src);
     let InterpreterEndState { globals, result } = interpreter::run(&mut statements);
     result.unwrap();
