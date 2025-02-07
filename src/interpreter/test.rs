@@ -97,24 +97,24 @@ fn test_comparisons() {
 
 #[test]
 fn test_declaration() {
-    let mut statements = parse_statements("let four = 4;");
-    let InterpreterEndState { globals, result } = interpreter::run(&mut statements);
+    let statements = parse_statements("let four = 4;");
+    let InterpreterEndState { globals, result } = interpreter::run(&statements);
     result.unwrap();
     assert_eq!(globals.get(&"four".to_string()), Some(&Integer(4)));
 }
 
 #[test]
 fn test_reassignment() {
-    let mut statements = parse_statements("let four = 4; four = 5;");
-    let InterpreterEndState { globals, result } = interpreter::run(&mut statements);
+    let statements = parse_statements("let four = 4; four = 5;");
+    let InterpreterEndState { globals, result } = interpreter::run(&statements);
     result.unwrap();
     assert_eq!(globals.get(&"four".to_string()), Some(&Integer(5)));
 }
 
 #[test]
 fn test_variable_arithmetic() {
-    let mut statements = parse_statements("let minutes = 2; let seconds = minutes * 60;");
-    let InterpreterEndState { globals, result } = interpreter::run(&mut statements);
+    let statements = parse_statements("let minutes = 2; let seconds = minutes * 60;");
+    let InterpreterEndState { globals, result } = interpreter::run(&statements);
     result.unwrap();
     assert_eq!(globals.get(&"seconds".to_string()), Some(&Integer(120)));
 }
@@ -127,8 +127,8 @@ fn test_group_execution() {
         a = 2;
     }
     "#;
-    let mut statements = parse_statements(src);
-    let InterpreterEndState { globals, result } = interpreter::run(&mut statements);
+    let statements = parse_statements(src);
+    let InterpreterEndState { globals, result } = interpreter::run(&statements);
     result.unwrap();
     assert_eq!(globals.get(&"a".to_string()), Some(&Integer(2)));
 }
@@ -143,8 +143,8 @@ fn test_variable_shadowing() {
         a = b;
     }
     "#;
-    let mut statements = parse_statements(src);
-    let InterpreterEndState { globals, result } = interpreter::run(&mut statements);
+    let statements = parse_statements(src);
+    let InterpreterEndState { globals, result } = interpreter::run(&statements);
     result.unwrap();
     assert_eq!(globals.get(&"a".to_string()), Some(&Integer(3)));
 }
