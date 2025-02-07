@@ -185,3 +185,18 @@ fn test_logical_expressions() {
     assert_eq!(eval_expression("4 != 4 || true"), Boolean(true));
     assert_eq!(eval_expression("true && false || true"), Boolean(true));
 }
+
+#[test]
+fn test_while_statement() {
+    let src = r#"
+    let i = 0;
+    while (i < 10) {
+        i = i + 1;
+    }
+    "#;
+
+    let statements = parse_statements(src);
+    let InterpreterEndState { globals, result } = interpreter::run(&statements);
+    result.unwrap();
+    assert_eq!(globals.get(&"i".to_string()), Some(&Integer(10)));
+}
