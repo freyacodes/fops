@@ -8,6 +8,7 @@ use std::collections::VecDeque;
 
 pub(super) fn statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
     if match_keyword(tokens, "if") { if_statement(tokens) }
+    else if match_keyword(tokens, "while") { while_statement(tokens) }
     else if match_keyword(tokens, "let") { declaration_statement(tokens) }
     else if let Some(name) = match_reassignment(tokens) { reassignment_statement(tokens, name) }
     else if match_control(tokens, "{") { block_statement(tokens) }
@@ -37,6 +38,15 @@ fn if_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
     }
 
     Ok(If { conditional_clauses, else_clause: None })
+}
+
+fn while_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
+    consume_control(tokens, "(")?;
+    let condition = expression(tokens)?;
+    consume_control(tokens, ")")?;
+    let statement = statement(tokens)?;
+    
+    Ok(AstStatement::While { condition, statement: Box::new(statement) })
 }
 
 fn block_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {

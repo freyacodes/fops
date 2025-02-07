@@ -4,7 +4,7 @@ use std::path::Path;
 
 const CONTROL_CHARACTERS: [char; 15] = ['+', '-', '*', '/', '!', '=', '<', '>', '(', ')', '{', '}', ';', '&', '|'];
 const MULTICHAR_OPERATORS: [char; 6] = ['=', '!', '<', '>', '&', '|'];
-const RESERVED_KEYWORDS: [&str; 3] = ["let", "if", "else"];
+const RESERVED_KEYWORDS: [&str; 4] = ["let", "if", "else", "while"];
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum TokenType {
