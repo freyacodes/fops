@@ -22,7 +22,7 @@ fn if_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
         let condition = expression(tokens)?;
         consume_control(tokens, ")")?;
         let statement = statement(tokens)?;
-        Ok(ConditionalClause { condition: Box::new(condition), statement: Box::new(statement) })
+        Ok(ConditionalClause { condition, statement })
     }
 
     let mut conditional_clauses = vec![conditional_clause(tokens)?];
@@ -77,7 +77,7 @@ fn declaration_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, S
 
     let statement = AstStatement::Declaration {
         name: name_token.contents,
-        expression: Box::new(expression(tokens)?),
+        expression: expression(tokens)?,
     };
 
     consume_control(tokens, ";")?;
@@ -100,7 +100,7 @@ fn match_reassignment(tokens: &mut VecDeque<Token>) -> Option<String> {
 fn reassignment_statement(tokens: &mut VecDeque<Token>, name: String) -> Result<AstStatement, String> {
     let statement = AstStatement::Reassignment {
         name,
-        expression: Box::new(expression(tokens)?),
+        expression: expression(tokens)?,
     };
 
     consume_control(tokens, ";")?;
@@ -110,7 +110,7 @@ fn reassignment_statement(tokens: &mut VecDeque<Token>, name: String) -> Result<
 fn expression_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
     let expression = expression(tokens)?;
     consume_control(tokens, ";")?;
-    Ok(AstStatement::Expression { expression: Box::new(expression) })
+    Ok(AstStatement::Expression { expression })
 }
 
 #[cfg(test)]
@@ -136,12 +136,12 @@ mod test {
         assert_eq!(statement, If {
             conditional_clauses: vec![
                 ConditionalClause {
-                    condition: Box::new(AstExpression::Symbol { name: "a".to_string() }),
-                    statement: Box::new(Block { statements: vec![] }),
+                    condition: AstExpression::Symbol { name: "a".to_string() },
+                    statement: Block { statements: vec![] },
                 },
                 ConditionalClause {
-                    condition: Box::new(AstExpression::Symbol { name: "b".to_string() }),
-                    statement: Box::new(Block { statements: vec![] }),
+                    condition: AstExpression::Symbol { name: "b".to_string() },
+                    statement: Block { statements: vec![] },
                 }
             ],
             else_clause: Some(Box::new(Block { statements: vec![] })),
@@ -171,16 +171,16 @@ mod test {
         assert_eq!(statement, Block {
             statements: vec![
                 AstStatement::Expression {
-                    expression: Box::new(FunctionCall {
+                    expression: FunctionCall {
                         name: "test1".to_string(),
                         arguments: vec![NumberLiteral { value: "100".to_string() }]
-                    })
+                    }
                 },
                 AstStatement::Expression {
-                    expression: Box::new(FunctionCall {
+                    expression: FunctionCall {
                         name: "test2".to_string(),
                         arguments: vec![NumberLiteral { value: "200".to_string() }]
-                    })
+                    }
                 }
             ]
         });
@@ -193,9 +193,9 @@ mod test {
 
         assert_eq!(statement, AstStatement::Declaration {
             name: "four".to_string(),
-            expression: Box::new(NumberLiteral {
+            expression: NumberLiteral {
                 value: "4".to_string(),
-            })
+            }
         });
         assert!(lexed.is_empty(), "Expected all tokens to be fully consumed");
     }
@@ -207,9 +207,9 @@ mod test {
 
         assert_eq!(statement, AstStatement::Reassignment {
             name: "four".to_string(),
-            expression: Box::new(NumberLiteral {
+            expression: NumberLiteral {
                 value: "4".to_string(),
-            })
+            }
         });
         assert!(lexed.is_empty(), "Expected all tokens to be fully consumed");
     }
@@ -220,12 +220,12 @@ mod test {
         let statement = statement(&mut lexed).expect("Expected to return Ok");
 
         assert_eq!(statement, AstStatement::Expression {
-            expression: Box::new(FunctionCall {
+            expression: FunctionCall {
                 name: "println".to_string(),
                 arguments: vec![
                     StringLiteral { value: "Hello, world!".to_string() }
                 ]
-            })
+            }
         });
         assert!(lexed.is_empty(), "Expected all tokens to be fully consumed");
     }

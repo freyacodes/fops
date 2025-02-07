@@ -12,15 +12,15 @@ pub enum AstStatement {
     If { conditional_clauses: Vec<ConditionalClause>, else_clause: Option<Box<AstStatement>> },
     While { condition: AstExpression, statement: Box<AstStatement> },
     Block { statements: Vec<AstStatement> },
-    Declaration { name: String, expression: Box<AstExpression> },
-    Reassignment { name: String, expression: Box<AstExpression> },
-    Expression { expression: Box<AstExpression> }
+    Declaration { name: String, expression: AstExpression },
+    Reassignment { name: String, expression: AstExpression },
+    Expression { expression: AstExpression }
 }
 
 #[derive(PartialEq, Debug)]
 pub struct ConditionalClause {
-    pub condition: Box<AstExpression>,
-    pub statement: Box<AstStatement>
+    pub condition: AstExpression,
+    pub statement: AstStatement
 }
 
 #[derive(PartialEq, Debug)]

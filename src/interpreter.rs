@@ -54,9 +54,9 @@ fn evaluate_statement(stack: &mut Stack, statement: &AstStatement) -> Result<(),
     match statement {
         AstStatement::If { conditional_clauses, else_clause } => {
             for clause in conditional_clauses {
-                let condition = evaluate_expression(stack, clause.condition.as_ref())?;
+                let condition = evaluate_expression(stack, &clause.condition)?;
                 if condition == Boolean(true) {
-                    return evaluate_statement(stack, clause.statement.as_ref());
+                    return evaluate_statement(stack, &clause.statement);
                 }
             }
             return match else_clause {
