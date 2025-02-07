@@ -1,13 +1,17 @@
 use crate::ast::expression::expression;
-use crate::ast::util::{consume_control, match_keyword};
+use crate::ast::util::{consume_control, match_control, match_keyword};
 use crate::ast::AstStatement::{Block, If};
 use crate::ast::{AstStatement, ConditionalClause};
 use crate::lexer::Token;
-use crate::lexer::TokenType::{Control, Keyword, Symbol};
+use crate::lexer::TokenType::{Control, Symbol};
 use std::collections::VecDeque;
 
 pub(super) fn statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
-    if_statement(tokens)
+    if match_keyword(tokens, "if") { if_statement(tokens) }
+    else if match_keyword(tokens, "let") { declaration_statement(tokens) }
+    else if let Some(name) = match_reassignment(tokens) { reassignment_statement(tokens, name) }
+    else if match_control(tokens, "{") { block_statement(tokens) }
+    else { expression_statement(tokens) }
 }
 
 fn if_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
@@ -20,93 +24,77 @@ fn if_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
         Ok(ConditionalClause { condition: Box::new(condition), statement: Box::new(statement) })
     }
 
-    if match_keyword(tokens, "if") {
-        let mut conditional_clauses = vec![conditional_clause(tokens)?];
+    let mut conditional_clauses = vec![conditional_clause(tokens)?];
 
-        loop {
-            if !match_keyword(tokens, "else") { break; }
-            if match_keyword(tokens, "if") { 
-                conditional_clauses.push(conditional_clause(tokens)?);
-            } else {
-                let else_clause = Some(Box::new(statement(tokens)?));
-                return Ok(If { conditional_clauses, else_clause })
-            }
+    loop {
+        if !match_keyword(tokens, "else") { break; }
+        if match_keyword(tokens, "if") {
+            conditional_clauses.push(conditional_clause(tokens)?);
+        } else {
+            let else_clause = Some(Box::new(statement(tokens)?));
+            return Ok(If { conditional_clauses, else_clause })
         }
-        
-        return Ok(If { conditional_clauses, else_clause: None })
     }
 
-    block_statement(tokens)
+    Ok(If { conditional_clauses, else_clause: None })
 }
 
 fn block_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
-    if let Some(first) = tokens.get(0) {
-        if first.token_type == Control && first.contents == "{" {
+    let mut statements: Vec<AstStatement> = Vec::new();
+
+    loop {
+        let next_token = match tokens.get(0) {
+            None => { return Err("Unexpected end of file after '{'".to_string()) }
+            Some(token) => token
+        };
+
+        if next_token.token_type == Control && next_token.contents == "}" {
             tokens.pop_front();
-            let mut statements: Vec<AstStatement> = Vec::new();
-
-            loop {
-                let next_token = match tokens.get(0) {
-                    None => { return Err("Unexpected end of file after '{'".to_string()) }
-                    Some(token) => token
-                };
-
-                if next_token.token_type == Control && next_token.contents == "}" {
-                    tokens.pop_front();
-                    return Ok(Block { statements });
-                }
-
-                statements.push(statement(tokens)?)
-            }
+            return Ok(Block { statements });
         }
-    }
 
-    declaration_statement(tokens)
+        statements.push(statement(tokens)?)
+    }
 }
 
 fn declaration_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
-    if let Some(first) = tokens.get(0) {
-        if first.token_type == Keyword && first.contents == "let" {
-            tokens.pop_front();
-            let name_token = match tokens.pop_front() {
-                None => return Err("Expected name in let statement".to_string()),
-                Some(token) => token
-            };
+    let name_token = match tokens.pop_front() {
+        None => return Err("Expected name in let statement".to_string()),
+        Some(token) => token
+    };
 
-            consume_control(tokens, "=")?;
+    consume_control(tokens, "=")?;
 
-            let statement = AstStatement::Declaration {
-                name: name_token.contents,
-                expression: Box::new(expression(tokens)?),
-            };
+    let statement = AstStatement::Declaration {
+        name: name_token.contents,
+        expression: Box::new(expression(tokens)?),
+    };
 
-            consume_control(tokens, ";")?;
-            return Ok(statement);
-        }
-    }
-
-    reassignment_statement(tokens)
+    consume_control(tokens, ";")?;
+    Ok(statement)
 }
 
-fn reassignment_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
+fn match_reassignment(tokens: &mut VecDeque<Token>) -> Option<String> {
     if let Some(first) = tokens.get(0) {
         if let Some(second) = tokens.get(1) {
             if first.token_type == Symbol && second.token_type == Control && second.contents == "=" {
-                let name_token = tokens.pop_front().unwrap();
-                tokens.pop_front(); // Drop the =
-
-                let statement = AstStatement::Reassignment {
-                    name: name_token.contents,
-                    expression: Box::new(expression(tokens)?),
-                };
-
-                consume_control(tokens, ";")?;
-                return Ok(statement);
+                let name = tokens.pop_front().unwrap();
+                tokens.pop_front().unwrap(); // Drop the equals sign
+                return Some(name.contents)
             }
         }
     }
+    None
+}
 
-    expression_statement(tokens)
+fn reassignment_statement(tokens: &mut VecDeque<Token>, name: String) -> Result<AstStatement, String> {
+    let statement = AstStatement::Reassignment {
+        name,
+        expression: Box::new(expression(tokens)?),
+    };
+
+    consume_control(tokens, ";")?;
+    Ok(statement)
 }
 
 fn expression_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, String> {
@@ -157,7 +145,7 @@ mod test {
         let statement = statement(&mut lexed).expect("Expected to return Ok");
 
         assert!(lexed.is_empty());
-        assert_eq!(statement, AstStatement::Block {
+        assert_eq!(statement, Block {
             statements: vec![
                 AstStatement::Expression {
                     expression: Box::new(FunctionCall {
