@@ -64,6 +64,9 @@ fn evaluate_statement(stack: &mut Stack, statement: &AstStatement) -> Result<(),
                 Some(else_statement) => evaluate_statement(stack, else_statement)
             }
         },
+        AstStatement::While { .. } => {
+            todo!()
+        },
         AstStatement::Block { statements } => { 
             stack.push_frame();
             for inner in statements {

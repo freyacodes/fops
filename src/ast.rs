@@ -10,6 +10,7 @@ use std::collections::VecDeque;
 #[derive(PartialEq, Debug)]
 pub enum AstStatement {
     If { conditional_clauses: Vec<ConditionalClause>, else_clause: Option<Box<AstStatement>> },
+    While { condition: AstExpression, statement: Box<AstStatement> },
     Block { statements: Vec<AstStatement> },
     Declaration { name: String, expression: Box<AstExpression> },
     Reassignment { name: String, expression: Box<AstExpression> },
