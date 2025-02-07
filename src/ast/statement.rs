@@ -106,13 +106,13 @@ fn expression_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, St
 #[cfg(test)]
 mod test {
     use crate::ast::statement::statement;
-    use crate::ast::AstExpression::{FunctionCall, NumberLiteral, StringLiteral};
-    use crate::ast::AstStatement::{Block, If};
+    use crate::ast::AstExpression::{BooleanLiteral, FunctionCall, NumberLiteral, StringLiteral};
+    use crate::ast::AstStatement::{Block, If, While};
     use crate::ast::{AstExpression, AstStatement, ConditionalClause};
     use crate::lexer;
 
     #[test]
-    fn test_if_statement() {
+    fn test_if_parsing() {
         let source = r#"
         if (a) {
         } else if (b) {
@@ -136,6 +136,19 @@ mod test {
             ],
             else_clause: Some(Box::new(Block { statements: vec![] })),
         });
+    }
+    
+    #[test]
+    fn test_while_parsing() {
+        let source = "while (true) {}";
+        let mut lexed = lexer::lex_from_string(source.to_string()).unwrap();
+        let statement = statement(&mut lexed).expect("Expected to return Ok");
+        
+        assert!(lexed.is_empty());
+        assert_eq!(statement, While {
+            condition: BooleanLiteral { value: true },
+            statement: Box::new(Block { statements: vec![] })
+        })
     }
 
     #[test]
@@ -164,7 +177,7 @@ mod test {
     }
 
     #[test]
-    fn test_declaration_statement() {
+    fn test_declaration_parsing() {
         let mut lexed = lexer::lex_from_string("let four = 4;".to_string()).unwrap();
         let statement = statement(&mut lexed).expect("Expected to return Ok");
 
@@ -178,7 +191,7 @@ mod test {
     }
 
     #[test]
-    fn test_reassignment_statement() {
+    fn test_reassignment_parsing() {
         let mut lexed = lexer::lex_from_string("four = 4;".to_string()).unwrap();
         let statement = statement(&mut lexed).expect("Expected to return Ok");
 
@@ -192,7 +205,7 @@ mod test {
     }
 
     #[test]
-    fn test_expression_statement() {
+    fn test_expression_parsing() {
         let mut lexed = lexer::lex_from_string("println(\"Hello, world!\");".to_string()).unwrap();
         let statement = statement(&mut lexed).expect("Expected to return Ok");
 
