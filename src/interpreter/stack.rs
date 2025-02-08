@@ -1,3 +1,4 @@
+use crate::interpreter::function::builtins::initialise_globals;
 use crate::interpreter::value::RuntimeValue;
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, VecDeque};
@@ -13,7 +14,10 @@ struct StackFrame {
 }
 
 impl Stack {
-    pub fn new(globals: HashMap<String, RuntimeValue>) -> Self {
+    pub fn new(additional_globals: HashMap<String, RuntimeValue>) -> Self {
+        let mut globals = initialise_globals();
+        additional_globals.into_iter().for_each(|(k, v)| { globals.insert(k, v); });
+        
         let mut frames = VecDeque::new();
         frames.push_back(StackFrame::new(globals));
         Stack { frames }
