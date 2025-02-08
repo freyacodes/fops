@@ -200,3 +200,8 @@ fn test_while_statement() {
     result.unwrap();
     assert_eq!(globals.get(&"i".to_string()), Some(&Integer(10)));
 }
+
+#[test]
+fn test_native_function_eval() {
+    assert_eq!(eval_expression(r#"len("Hello, world!")"#), Integer(13));
+}
