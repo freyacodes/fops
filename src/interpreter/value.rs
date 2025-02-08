@@ -19,4 +19,14 @@ impl RuntimeValue {
             RuntimeValue::Unit => "unit".to_string()
         }
     }
+
+    pub fn type_name(&self) -> &str {
+        match self {
+            RuntimeValue::String(_) => "string",
+            RuntimeValue::Integer(_) => "integer",
+            RuntimeValue::Boolean(_) => "boolean",
+            RuntimeValue::Function { .. } => "function",
+            RuntimeValue::Unit => "unit"
+        }
+    }
 }

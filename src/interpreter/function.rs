@@ -70,9 +70,10 @@ pub(super) mod builtins {
         let mut map = HashMap::new();
         declare_native(&mut map, "print", 1, Rc::new(Print {}));
         declare_native(&mut map, "println", 1, Rc::new(Println {}));
+        declare_native(&mut map, "len", 1, Rc::new(Len {}));
         map
     }
-    
+
     fn declare_native(
         map: &mut HashMap<String, RuntimeValue>,
         name: &str,
@@ -82,11 +83,13 @@ pub(super) mod builtins {
         map.insert(name.to_string(), RuntimeValue::Function {
             arity,
             implementation: FunctionImplementation::NativeFunction { handler: implementation },
-        }).expect(format!("Failed to declare function '{}'", name).as_str());
-    } 
+        });
+    }
 
     struct Print;
     struct Println;
+    struct Len;
+
     impl NativeFunctionImplementation for Println {
         fn invoke(&self, arguments: &mut [RuntimeValue]) -> Result<RuntimeValue, String> {
             let string = arguments.get(0).unwrap().value_as_string();
@@ -100,6 +103,16 @@ pub(super) mod builtins {
             let string = arguments.get(0).unwrap().value_as_string();
             print!("{}", string);
             Ok(RuntimeValue::Unit)
+        }
+    }
+
+    impl NativeFunctionImplementation for Len {
+        fn invoke(&self, arguments: &mut [RuntimeValue]) -> Result<RuntimeValue, String> {
+            let argument = arguments.get(0).unwrap();
+            match argument { 
+                RuntimeValue::String(string) => { Ok(RuntimeValue::Integer(string.len() as i32)) }
+                _ => Err(format!("Attempt to get length of {}", argument.type_name()))
+            }
         }
     }
 }
