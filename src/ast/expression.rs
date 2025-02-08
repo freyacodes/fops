@@ -126,7 +126,17 @@ fn unary(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
 }
 
 fn call(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
-    primary(tokens)
+    let primary = primary(tokens)?;
+    
+    if !match_control(tokens, "(") { return Ok(primary) }
+
+    let mut arguments: Vec<AstExpression> = Vec::new();
+    loop {
+        if match_control(tokens, ")") {
+            return Ok(AstExpression::Call { callee: Box::new(primary), arguments })
+        }
+        arguments.push(expression(tokens)?);
+    }
 }
 
 fn primary(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
@@ -181,7 +191,7 @@ mod test {
             arguments: vec![]
         });
     }
-    
+
     #[test]
     fn test_call_parsing_one_arg() {
         let mut lexed = lexer::lex_from_string("println(\"Hello, world!\")".to_string()).unwrap();
