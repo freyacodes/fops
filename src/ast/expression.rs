@@ -1,5 +1,5 @@
 use crate::ast::operator::OperatorType::{Bang, Division, Equality, GreaterThan, GreaterThanOrEqual, Inequality, LessThan, LessThanOrEqual, Minus, Modulus, Multiplication, Plus};
-use crate::ast::util::{consume_control, match_control};
+use crate::ast::util::match_control;
 use crate::ast::AstExpression::{BiOperator, BooleanLiteral, Logical, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
 use crate::ast::LogicalOperator::{And, Or};
 use crate::ast::{util, AstExpression};
@@ -122,23 +122,11 @@ fn unary(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
         }
     }
 
-    primary(tokens)
+    call(tokens)
 }
 
 fn call(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
-    // Remove already matched tokens
-    let name = tokens.pop_front().unwrap();
-    tokens.pop_front().unwrap();
-
-    // Currently only one argument is supported
-    let argument = expression(tokens)?;
-
-    consume_control(tokens, ")")?;
-
-    Ok(AstExpression::FunctionCall {
-        name: name.contents,
-        arguments: vec![argument],
-    })
+    primary(tokens)
 }
 
 fn primary(tokens: &mut VecDeque<Token>) -> Result<AstExpression, String> {
@@ -178,18 +166,29 @@ mod test {
     use crate::ast::expression::expression;
     use crate::ast::operator::OperatorType;
     use crate::ast::operator::OperatorType::{Division, Multiplication};
-    use crate::ast::AstExpression::{BiOperator, FunctionCall, Logical, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
+    use crate::ast::AstExpression::{BiOperator, Call, Logical, NumberLiteral, StringLiteral, Symbol, UnaryOperator};
     use crate::ast::LogicalOperator::{And, Or};
     use crate::{ast, lexer};
     use std::collections::VecDeque;
 
     #[test]
-    fn test_function_call_parsing() {
+    fn test_call_parsing_zero_args() {
+        let mut lexed = lexer::lex_from_string("panic()".to_string()).unwrap();
+
+        let expression = expression(&mut lexed).expect("Expected to return Ok");
+        assert_eq!(expression, Call {
+            callee: Box::new(Symbol { name: "panic".to_string() }),
+            arguments: vec![]
+        });
+    }
+    
+    #[test]
+    fn test_call_parsing_one_arg() {
         let mut lexed = lexer::lex_from_string("println(\"Hello, world!\")".to_string()).unwrap();
 
         let expression = expression(&mut lexed).expect("Expected to return Ok");
-        assert_eq!(expression, FunctionCall {
-            name: "println".to_string(),
+        assert_eq!(expression, Call {
+            callee: Box::new(Symbol { name: "println".to_string() }),
             arguments: vec![
                 StringLiteral { value: "Hello, world!".to_string() }
             ]

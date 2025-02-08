@@ -187,7 +187,7 @@ fn evaluate_expression(stack: &mut Stack, element: &AstExpression) -> Result<Run
         },
         AstExpression::StringLiteral { value } => RuntimeValue::String(value.clone()),
         AstExpression::BooleanLiteral { value } => Boolean(*value),
-        AstExpression::FunctionCall { name, arguments } => function::invoke_function(stack, name, arguments)?,
+        AstExpression::Call { callee, arguments } => function::invoke_function(stack, todo!(), arguments)?,
         AstExpression::Symbol { name } => {
             match stack.get(name.as_str()) {
                 None => return Err(format!("Variable not found: {}", name)),

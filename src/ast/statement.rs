@@ -116,9 +116,9 @@ fn expression_statement(tokens: &mut VecDeque<Token>) -> Result<AstStatement, St
 #[cfg(test)]
 mod test {
     use crate::ast::statement::statement;
-    use crate::ast::AstExpression::{BooleanLiteral, FunctionCall, NumberLiteral, StringLiteral};
+    use crate::ast::AstExpression::{BooleanLiteral, Call, NumberLiteral, StringLiteral, Symbol};
     use crate::ast::AstStatement::{Block, If, While};
-    use crate::ast::{AstExpression, AstStatement, ConditionalClause};
+    use crate::ast::{AstStatement, ConditionalClause};
     use crate::lexer;
 
     #[test]
@@ -136,11 +136,11 @@ mod test {
         assert_eq!(statement, If {
             conditional_clauses: vec![
                 ConditionalClause {
-                    condition: AstExpression::Symbol { name: "a".to_string() },
+                    condition: Symbol { name: "a".to_string() },
                     statement: Block { statements: vec![] },
                 },
                 ConditionalClause {
-                    condition: AstExpression::Symbol { name: "b".to_string() },
+                    condition: Symbol { name: "b".to_string() },
                     statement: Block { statements: vec![] },
                 }
             ],
@@ -171,14 +171,14 @@ mod test {
         assert_eq!(statement, Block {
             statements: vec![
                 AstStatement::Expression {
-                    expression: FunctionCall {
-                        name: "test1".to_string(),
+                    expression: Call {
+                        callee: Box::new(Symbol { name: "test1".to_string() }),
                         arguments: vec![NumberLiteral { value: "100".to_string() }]
                     }
                 },
                 AstStatement::Expression {
-                    expression: FunctionCall {
-                        name: "test2".to_string(),
+                    expression: Call {
+                        callee: Box::new(Symbol { name: "test2".to_string() }),
                         arguments: vec![NumberLiteral { value: "200".to_string() }]
                     }
                 }
@@ -220,8 +220,8 @@ mod test {
         let statement = statement(&mut lexed).expect("Expected to return Ok");
 
         assert_eq!(statement, AstStatement::Expression {
-            expression: FunctionCall {
-                name: "println".to_string(),
+            expression: Call {
+                callee: Box::new(Symbol { name: "println".to_string() }),
                 arguments: vec![
                     StringLiteral { value: "Hello, world!".to_string() }
                 ]

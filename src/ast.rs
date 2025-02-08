@@ -32,7 +32,7 @@ pub enum AstExpression {
     StringLiteral { value: String },
     BooleanLiteral { value: bool },
     Symbol { name: String },
-    FunctionCall { name: String, arguments: Vec<AstExpression> }
+    Call { callee: Box<AstExpression>, arguments: Vec<AstExpression> }
 }
 
 #[derive(PartialEq, Debug)]
