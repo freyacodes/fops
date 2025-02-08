@@ -7,7 +7,7 @@ use crate::lexer::Token;
 use operator::OperatorType;
 use std::collections::VecDeque;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum AstStatement {
     If { conditional_clauses: Vec<ConditionalClause>, else_clause: Option<Box<AstStatement>> },
     While { condition: AstExpression, statement: Box<AstStatement> },
@@ -17,13 +17,13 @@ pub enum AstStatement {
     Expression { expression: AstExpression }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct ConditionalClause {
     pub condition: AstExpression,
     pub statement: AstStatement
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum AstExpression {
     Logical { operator: LogicalOperator, left: Box<AstExpression>, right: Box<AstExpression> },
     BiOperator { operator: OperatorType, left: Box<AstExpression>, right: Box<AstExpression> },
@@ -35,7 +35,7 @@ pub enum AstExpression {
     Call { callee: Box<AstExpression>, arguments: Vec<AstExpression> }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum LogicalOperator { And, Or }
 
 pub fn parse_script(mut tokens: VecDeque<Token>) -> Result<Vec<AstStatement>, String> {
