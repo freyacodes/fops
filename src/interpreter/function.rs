@@ -6,7 +6,7 @@ use crate::interpreter::value::RuntimeValue;
 use std::fmt::{Debug, Formatter};
 use std::io::Write;
 use std::rc::Rc;
-use std::{io, ptr};
+use std::ptr;
 
 #[derive(Clone)]
 pub enum FunctionImplementation {
@@ -38,25 +38,31 @@ pub trait NativeFunctionImplementation {
 
 pub(super) fn invoke_function(
     stack: &mut Stack,
-    name: &str,
+    callee: &AstExpression,
     arguments: &Vec<AstExpression>,
 ) -> Result<RuntimeValue, String> {
-    match name {
-        "print" | "println" => {
-            if arguments.len() != 1 { return Err(format!("Expected 1 argument, got {}", arguments.len())); };
-            let value = evaluate_expression(stack, arguments.get(0).unwrap())?;
-            let value_string = value.value_as_string();
+    let resolved_callee = evaluate_expression(stack, callee)?;
 
-            if name == "println" {
-                println!("{}", value_string);
-            } else {
-                print!("{}", value_string);
-                io::stdout().flush().unwrap();
+    match resolved_callee {
+        RuntimeValue::Function { arity, implementation } => {
+            if arguments.len() != arity as usize {
+                return Err(format!(
+                    "Attempt to call function with {} arguments when {} were expected",
+                    arguments.len(), arity
+                ))
             }
 
-            Ok(RuntimeValue::Unit)
+            let mut resolved_arguments: Vec<RuntimeValue> = vec![];
+            for expression in arguments {
+                resolved_arguments.push(evaluate_expression(stack, expression)?);
+            }
+
+            match implementation {
+                NativeFunction { handler } => handler.invoke(resolved_arguments.as_mut_slice()),
+                UserFunction { .. } => todo!(),
+            }
         }
-        _ => Err(format!("Function '{}' not found. Only 'print' and 'println' are currently supported", name)),
+        _ => Err(format!("Attempt to call {}", resolved_callee.type_name()))
     }
 }
 
@@ -109,7 +115,7 @@ pub(super) mod builtins {
     impl NativeFunctionImplementation for Len {
         fn invoke(&self, arguments: &mut [RuntimeValue]) -> Result<RuntimeValue, String> {
             let argument = arguments.get(0).unwrap();
-            match argument { 
+            match argument {
                 RuntimeValue::String(string) => { Ok(RuntimeValue::Integer(string.len() as i32)) }
                 _ => Err(format!("Attempt to get length of {}", argument.type_name()))
             }
