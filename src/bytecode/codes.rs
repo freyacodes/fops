@@ -1,10 +1,13 @@
-pub const OP_RETURN: u8 = 0x00;
+pub const OP_LOAD: u8 = 0x00;
+pub const OP_RETURN: u8 = 0x01;
 
-pub const INSTRUCTION_NAMES: [&str; 1] = [
+pub const INSTRUCTION_NAMES: [&str; 2] = [
+    "OP_LOAD",
     "OP_RETURN"
 ];
 
-pub const INSTRUCTION_LENGTH: [u8; 1] = [
+pub const INSTRUCTION_LENGTH: [u8; 2] = [
+    5,
     1
 ];
 
