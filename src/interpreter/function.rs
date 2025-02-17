@@ -4,9 +4,8 @@ use crate::interpreter::function::FunctionImplementation::{NativeFunction, UserF
 use crate::interpreter::stack::Stack;
 use crate::interpreter::value::RuntimeValue;
 use std::fmt::{Debug, Formatter};
-use std::io::Write;
-use std::rc::Rc;
 use std::ptr;
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub enum FunctionImplementation {
