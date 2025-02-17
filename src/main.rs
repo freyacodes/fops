@@ -1,15 +1,26 @@
+use crate::bytecode::disassembler::disassemble_file;
 use std::env;
+use std::ffi::OsStr;
 use std::path::Path;
 
 mod lexer;
 mod ast;
 mod interpreter;
 mod repl;
+pub mod bytecode;
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
 
     if let Some(arg) = args.get(0) {
+        let path = Path::new(&arg);
+
+        // This should probably be its own thing
+        if path.extension() == Some(OsStr::new("bin")) {
+            disassemble_file(Box::from(path));
+            return
+        }
+
         let lexed = match lexer::lex_from_file(Box::from(Path::new(&arg))) {
             Ok(lexed) => lexed,
             Err(err) => {

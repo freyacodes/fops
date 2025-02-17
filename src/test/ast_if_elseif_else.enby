@@ -1,7 +1,0 @@
-if foo {
-    println("foo");
-} else if bar {
-    println("bar");
-} else {
-    println("baz");
-}

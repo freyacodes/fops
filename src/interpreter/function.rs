@@ -10,6 +10,7 @@ use std::rc::Rc;
 #[derive(Clone)]
 pub enum FunctionImplementation {
     NativeFunction { handler: Rc<dyn NativeFunctionImplementation> },
+    #[allow(dead_code)]
     UserFunction { statement: AstStatement },
 }
 
