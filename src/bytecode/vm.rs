@@ -4,6 +4,7 @@ use crate::bytecode::codes;
 pub fn run(#[allow(unused)] instructions: &Vec<u8>) {
     #[allow(unused)]
     let mut pc: usize = 0;
+    let mut stack: Vec<f32> = Vec::new();
 
     macro_rules! read_byte {
         () => {{
@@ -26,10 +27,10 @@ pub fn run(#[allow(unused)] instructions: &Vec<u8>) {
 
         match instruction {
             codes::OP_CONSTANT => {
-                println!("{}", read_f32!());
-                continue;
+                stack.push(read_f32!());
             }
             codes::OP_RETURN => {
+                println!("{}", stack.pop().expect("Stack is empty"));
                 return;
             }
             _ => {
