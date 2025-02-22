@@ -1,7 +1,7 @@
 use crate::bytecode::codes;
 
 #[allow(unused_assignments)]
-pub fn run(instructions: &Vec<u8>) {
+pub fn run(#[allow(unused)] instructions: &Vec<u8>) {
     #[allow(unused)]
     let mut pc: usize = 0;
 
@@ -27,7 +27,7 @@ pub fn run(instructions: &Vec<u8>) {
         match instruction {
             codes::OP_CONSTANT => {
                 println!("{}", read_f32!());
-                return;
+                continue;
             }
             codes::OP_RETURN => {
                 return;
