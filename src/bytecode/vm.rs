@@ -16,26 +16,20 @@ pub fn run(#[allow(unused)] instructions: &Vec<u8>) {
 
     macro_rules! read_f32 {
         () => {
-             f32::from_be_bytes([
-                read_byte!(), read_byte!(), read_byte!(), read_byte!()
-            ])
-        }
+            f32::from_be_bytes([read_byte!(), read_byte!(), read_byte!(), read_byte!()])
+        };
     }
 
     loop {
         let instruction = read_byte!();
 
         match instruction {
-            codes::OP_CONSTANT => {
-                stack.push(read_f32!());
-            }
+            codes::OP_CONSTANT => stack.push(read_f32!()),
             codes::OP_RETURN => {
                 println!("{}", stack.pop().expect("Stack is empty"));
                 return;
             }
-            _ => {
-                panic!("Unexpected opcode: {:04x}", read_byte!());
-            }
+            _ => panic!("Unexpected opcode: {:04x}", instruction),
         }
     }
 }
