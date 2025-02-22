@@ -1,10 +1,6 @@
 use crate::bytecode::codes::*;
-use std::fs;
-use std::path::Path;
 
-pub fn disassemble_file(file: Box<Path>) {
-    let instructions = fs::read(file).unwrap();
-
+pub fn disassemble(instructions: Vec<u8>) {
     let mut index = 0;
     while index < instructions.len() {
         let code = &instructions[index];
@@ -19,7 +15,7 @@ pub fn disassemble_file(file: Box<Path>) {
         let arguments = &instructions[arg_from..arg_to];
         
         match *code {
-            OP_LOAD => print_f32(&index, name, arguments),
+            OP_CONSTANT => print_f32(&index, name, arguments),
             OP_RETURN => print_simple(&index, name),
             _ => panic!("Unknown opcode {:#04x}", code),
         }

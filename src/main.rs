@@ -1,7 +1,7 @@
-use crate::bytecode::disassembler::disassemble_file;
-use std::env;
+use crate::bytecode::{disassembler, vm};
 use std::ffi::OsStr;
 use std::path::Path;
+use std::{env, fs};
 
 mod lexer;
 mod ast;
@@ -17,7 +17,14 @@ fn main() {
 
         // This should probably be its own thing
         if path.extension() == Some(OsStr::new("bin")) {
-            disassemble_file(Box::from(path));
+            let bytes = fs::read(Box::from(path)).unwrap();
+
+            if env::var("DISASSEMBLE").is_ok() {
+                disassembler::disassemble(bytes);
+            } else {
+                vm::run(&bytes);
+            }
+
             return
         }
 
