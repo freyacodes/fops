@@ -26,8 +26,8 @@ pub fn run(chunk: &Chunk) -> f32 {
 
     macro_rules! binary_op {
         ($operator:tt) => {{
-            let left = stack.pop().expect("Stack is empty");
-            let right = stack.pop().expect("Stack only had one element");
+            let right = stack.pop().expect("Stack is empty");
+            let left = stack.pop().expect("Stack only had one element");
             stack.push(left $operator right);
         }}
     }
@@ -79,8 +79,8 @@ mod tests {
     #[test]
     fn test_addition() {
         let mut chunk = Chunk::new();
-        chunk.write_constant_f32(5f32);
         chunk.write_constant_f32(15f32);
+        chunk.write_constant_f32(5f32);
         chunk.write_simple(OP_ADD);
         chunk.write_simple(OP_RETURN);
         assert_eq!(20f32, run(&chunk))
@@ -89,8 +89,8 @@ mod tests {
     #[test]
     fn test_subtraction() {
         let mut chunk = Chunk::new();
-        chunk.write_constant_f32(5f32);
         chunk.write_constant_f32(15f32);
+        chunk.write_constant_f32(5f32);
         chunk.write_simple(OP_SUBTRACT);
         chunk.write_simple(OP_RETURN);
         assert_eq!(10f32, run(&chunk))
@@ -99,8 +99,8 @@ mod tests {
     #[test]
     fn test_division() {
         let mut chunk = Chunk::new();
-        chunk.write_constant_f32(5f32);
         chunk.write_constant_f32(15f32);
+        chunk.write_constant_f32(5f32);
         chunk.write_simple(OP_DIVIDE);
         chunk.write_simple(OP_RETURN);
         assert_eq!(3f32, run(&chunk))
@@ -109,8 +109,8 @@ mod tests {
     #[test]
     fn test_multiplication() {
         let mut chunk = Chunk::new();
-        chunk.write_constant_f32(5f32);
         chunk.write_constant_f32(15f32);
+        chunk.write_constant_f32(5f32);
         chunk.write_simple(OP_MULTIPLY);
         chunk.write_simple(OP_RETURN);
         assert_eq!(75f32, run(&chunk))
