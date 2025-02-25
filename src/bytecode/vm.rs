@@ -63,4 +63,44 @@ mod tests {
         chunk.write_simple(OP_RETURN);
         assert_eq!(-123f32, run(&chunk))
     }
+
+    #[test]
+    fn test_addition() {
+        let mut chunk = Chunk::new();
+        chunk.write_constant_f32(15f32);
+        chunk.write_constant_f32(5f32);
+        chunk.write_simple(OP_ADD);
+        chunk.write_simple(OP_RETURN);
+        assert_eq!(20f32, run(&chunk))
+    }
+
+    #[test]
+    fn test_subtraction() {
+        let mut chunk = Chunk::new();
+        chunk.write_constant_f32(15f32);
+        chunk.write_constant_f32(5f32);
+        chunk.write_simple(OP_ADD);
+        chunk.write_simple(OP_RETURN);
+        assert_eq!(10f32, run(&chunk))
+    }
+
+    #[test]
+    fn test_division() {
+        let mut chunk = Chunk::new();
+        chunk.write_constant_f32(15f32);
+        chunk.write_constant_f32(5f32);
+        chunk.write_simple(OP_DIVIDE);
+        chunk.write_simple(OP_RETURN);
+        assert_eq!(3f32, run(&chunk))
+    }
+
+    #[test]
+    fn test_multiplication() {
+        let mut chunk = Chunk::new();
+        chunk.write_constant_f32(15f32);
+        chunk.write_constant_f32(5f32);
+        chunk.write_simple(OP_ADD);
+        chunk.write_simple(OP_RETURN);
+        assert_eq!(75f32, run(&chunk))
+    }
 }
