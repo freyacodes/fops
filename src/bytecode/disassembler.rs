@@ -13,13 +13,15 @@ pub fn disassemble(instructions: Vec<u8>) {
         let arg_from = index + 1;
         let arg_to = index + instruction_length as usize;
         let arguments = &instructions[arg_from..arg_to];
-        
+
         match *code {
             OP_CONSTANT => print_f32(&index, name, arguments),
-            OP_NEGATE | OP_RETURN => print_simple(&index, name),
+            OP_NEGATE | OP_ADD | OP_SUBTRACT | OP_DIVIDE | OP_MULTIPLY | OP_RETURN => {
+                print_simple(&index, name)
+            }
             _ => panic!("Unknown opcode {:#04x}", code),
         }
-        
+
         index += instruction_length as usize;
     }
 }
@@ -29,5 +31,10 @@ fn print_simple(index: &usize, name: &str) {
 }
 
 fn print_f32(index: &usize, name: &str, arg: &[u8]) {
-    println!("{:#04x} {} {}", index, name, f32::from_be_bytes(arg.try_into().unwrap()));
+    println!(
+        "{:#04x} {} {}",
+        index,
+        name,
+        f32::from_be_bytes(arg.try_into().unwrap())
+    );
 }
