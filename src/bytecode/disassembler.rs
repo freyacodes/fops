@@ -16,7 +16,7 @@ pub fn disassemble(instructions: Vec<u8>) {
         
         match *code {
             OP_CONSTANT => print_f32(&index, name, arguments),
-            OP_RETURN => print_simple(&index, name),
+            OP_NEGATE | OP_RETURN => print_simple(&index, name),
             _ => panic!("Unknown opcode {:#04x}", code),
         }
         
