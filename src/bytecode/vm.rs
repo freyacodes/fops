@@ -1,8 +1,11 @@
 use crate::bytecode::codes;
 use std::ops::Neg;
+use crate::bytecode::chunk::Chunk;
 
 #[allow(unused_assignments)]
-pub fn run(#[allow(unused)] instructions: &Vec<u8>) -> f32 {
+pub fn run(chunk: &Chunk) -> f32 {
+    #[allow(unused)]
+    let instructions = &chunk.code;
     #[allow(unused)]
     let mut pc: usize = 0;
     let mut stack: Vec<f32> = Vec::new();
@@ -40,31 +43,24 @@ pub fn run(#[allow(unused)] instructions: &Vec<u8>) -> f32 {
 
 #[cfg(test)]
 mod tests {
+    use crate::bytecode::chunk::Chunk;
     use crate::bytecode::codes::*;
     use crate::bytecode::vm::run;
 
     #[test]
     fn test_constant() {
-        assert_eq!(
-            123f32,
-            run(&vec![OP_CONSTANT, 0x42, 0xf6, 0x00, 0x00, OP_RETURN])
-        )
+        let mut chunk = Chunk::new();
+        chunk.write_constant_f32(123f32);
+        chunk.write_simple(OP_RETURN);
+        assert_eq!(123f32, run(&chunk))
     }
 
     #[test]
     fn test_negate() {
-        assert_eq!(
-            -123f32,
-            run(&vec![
-                OP_CONSTANT,
-                0x42,
-                0xf6,
-                0x00,
-                0x00,
-                OP_NEGATE,
-                OP_NEGATE,
-                OP_RETURN
-            ])
-        )
+        let mut chunk = Chunk::new();
+        chunk.write_constant_f32(123f32);
+        chunk.write_simple(OP_NEGATE);
+        chunk.write_simple(OP_RETURN);
+        assert_eq!(-123f32, run(&chunk))
     }
 }

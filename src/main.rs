@@ -22,7 +22,7 @@ fn main() {
             if env::var("DISASSEMBLE").is_ok() {
                 disassembler::disassemble(bytes);
             } else {
-                let code = vm::run(&bytes);
+                let code = vm::run(&bytes.into());
                 println!("Program completed with code {}", code);
             }
 
