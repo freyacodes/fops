@@ -4,9 +4,6 @@ use std::path::Path;
 use std::{env, fs};
 
 mod lexer;
-mod ast;
-mod interpreter;
-mod repl;
 pub mod bytecode;
 
 fn main() {
@@ -29,26 +26,8 @@ fn main() {
             return
         }
 
-        let lexed = match lexer::lex_from_file(Box::from(Path::new(&arg))) {
-            Ok(lexed) => lexed,
-            Err(err) => {
-                println!("Lexer: {}", err);
-                return;
-            }
-        };
-
-        let statements = match ast::parse_script(lexed) {
-            Ok(statements) => statements,
-            Err(err) => {
-                println!("Syntax error: {}", err);
-                return;
-            }
-        };
-
-        if let Err(error) = interpreter::run(&statements).result {
-            println!("Runtime error: {}", error);
-        }
+        println!("Normal execution would go here, but it is not ready yet")
     } else {
-        repl::repl();
+        println!("The REPL would go here, but it is removed for now")
     }
 }
