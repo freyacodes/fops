@@ -88,68 +88,68 @@ impl<'a> Scanner {
 
         let c = self.peek();
         self.advance();
+        
+        if c.is_ascii_digit() {
+            return self.number_literal()
+        }
+        
         match c {
-            '(' => return self.make_token(TokenLeftParen),
-            ')' => return self.make_token(TokenRightParen),
-            '{' => return self.make_token(TokenLeftBrace),
-            '}' => return self.make_token(TokenRightBrace),
-            ';' => return self.make_token(TokenSemicolon),
-            ',' => return self.make_token(TokenComma),
-            '.' => return self.make_token(TokenDot),
-            '-' => return self.make_token(TokenMinus),
-            '+' => return self.make_token(TokenPlus),
-            '/' => return self.make_token(TokenSlash),
-            '*' => return self.make_token(TokenAsterisk),
+            '(' => self.make_token(TokenLeftParen),
+            ')' => self.make_token(TokenRightParen),
+            '{' => self.make_token(TokenLeftBrace),
+            '}' => self.make_token(TokenRightBrace),
+            ';' => self.make_token(TokenSemicolon),
+            ',' => self.make_token(TokenComma),
+            '.' => self.make_token(TokenDot),
+            '-' => self.make_token(TokenMinus),
+            '+' => self.make_token(TokenPlus),
+            '/' => self.make_token(TokenSlash),
+            '*' => self.make_token(TokenAsterisk),
             '!' => {
-                return if self.match_next('=') {
+                if self.match_next('=') {
                     self.make_token(TokenBangEqual)
                 } else {
                     self.make_token(TokenBang)
                 }
             }
             '=' => {
-                return if self.match_next('=') {
+                if self.match_next('=') {
                     self.make_token(TokenEqualEqual)
                 } else {
                     self.make_token(TokenEqual)
                 }
             }
             '<' => {
-                return if self.match_next('=') {
+                if self.match_next('=') {
                     self.make_token(TokenLessEqual)
                 } else {
                     self.make_token(TokenLess)
                 }
             }
             '>' => {
-                return if self.match_next('=') {
+                if self.match_next('=') {
                     self.make_token(TokenGreaterEqual)
                 } else {
                     self.make_token(TokenGreater)
                 }
             }
             '&' => {
-                return if self.match_next('&') {
+                if self.match_next('&') {
                     self.make_token(TokenAmpAmp)
                 } else {
                     ScannnerResult::Err("Unexpected lone &".to_string(), self.line)
                 }
             }
             '|' => {
-                return if self.match_next('|') {
+                if self.match_next('|') {
                     self.make_token(TokenPipePipe)
                 } else {
                     ScannnerResult::Err("Unexpected lone |".to_string(), self.line)
                 }
             }
-            '"' => return self.string_literal(),
-            '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
-                return self.number_literal()
-            }
-            _ => {}
-        };
-
-        todo!()
+            '"' => self.string_literal(),
+            _ => ScannnerResult::Err("Unexpected character".to_string(), self.line)
+        }
     }
 
     fn peek(&self) -> char {
