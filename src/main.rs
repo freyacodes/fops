@@ -5,6 +5,7 @@ use std::{env, fs};
 
 mod lexer;
 pub mod bytecode;
+mod scanner;
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
