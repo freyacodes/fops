@@ -85,7 +85,7 @@ impl<'a> Scanner {
         }
 
         self.current_token_start = self.current_token_end;
-        
+
         let c = self.peek();
         self.advance();
         match c {
@@ -143,6 +143,9 @@ impl<'a> Scanner {
                 }
             }
             '"' => return self.string_literal(),
+            '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => {
+                return self.number_literal()
+            }
             _ => {}
         };
 
@@ -197,7 +200,7 @@ impl<'a> Scanner {
             line: self.line,
         })
     }
-    
+
     fn string_literal(&'a mut self) -> ScannnerResult<'a> {
         while !self.is_at_end() && self.peek() != '"' {
             if self.peek() == '\n' {
@@ -205,13 +208,28 @@ impl<'a> Scanner {
             }
             self.advance();
         }
-        
+
         if self.is_at_end() {
             return ScannnerResult::Err("Unterminated string literal".to_string(), self.line);
         }
 
         self.advance();
         self.make_token(TokenString)
+    }
+
+    fn number_literal(&'a mut self) -> ScannnerResult<'a> {
+        while !self.is_at_end() && self.peek().is_ascii_digit() {
+            self.advance();
+        }
+
+        if !self.is_at_end() && self.peek() == '.' {
+            self.advance();
+            while !self.is_at_end() && self.peek().is_ascii_digit() {
+                self.advance();
+            }
+        }
+
+        self.make_token(TokenNumber)
     }
 }
 
@@ -297,6 +315,20 @@ mod tests {
 
         match_full_token(&mut scanner, TokenString, "\"Hello,\nworld!\"", 2);
         match_full_token(&mut scanner, TokenString, "\"Hello again!!\"", 3);
+        assert_eq!(scanner.next(), EOF);
+    }
+
+    #[test]
+    fn number_literals() {
+        let source = "1 12 -13 5.55 -0.3".to_string();
+        let mut scanner = Scanner::new(source);
+        match_full_token(&mut scanner, TokenNumber, "1", 1);
+        match_full_token(&mut scanner, TokenNumber, "12", 1);
+        match_token(&mut scanner, TokenMinus, 1);
+        match_full_token(&mut scanner, TokenNumber, "13", 1);
+        match_full_token(&mut scanner, TokenNumber, "5.55", 1);
+        match_token(&mut scanner, TokenMinus, 1);
+        match_full_token(&mut scanner, TokenNumber, "0.3", 1);
         assert_eq!(scanner.next(), EOF);
     }
 
