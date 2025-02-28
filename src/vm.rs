@@ -57,7 +57,7 @@ pub fn run(chunk: &Chunk) -> f32 {
 mod tests {
     use crate::bytecode::chunk::Chunk;
     use crate::bytecode::codes::*;
-    use crate::bytecode::vm::run;
+    use crate::vm::run;
 
     #[test]
     fn test_constant() {

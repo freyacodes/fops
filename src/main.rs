@@ -1,10 +1,11 @@
-use crate::bytecode::{disassembler, vm};
+use crate::bytecode::disassembler;
 use std::ffi::OsStr;
 use std::path::Path;
 use std::{env, fs};
 
 pub mod bytecode;
 mod scanner;
+pub mod vm;
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
