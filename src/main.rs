@@ -3,7 +3,6 @@ use std::ffi::OsStr;
 use std::path::Path;
 use std::{env, fs};
 
-mod lexer;
 pub mod bytecode;
 mod scanner;
 
