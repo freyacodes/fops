@@ -1,13 +1,19 @@
 use crate::bytecode::codes;
 use std::ops::Neg;
 use crate::bytecode::chunk::Chunk;
+use crate::compiler;
+
+pub fn interpret(source: String) -> Result<f32, String> {
+    let chunk = compiler::compile(source)?;
+    Ok(run(&chunk))
+}
 
 #[allow(unused_assignments)]
 pub fn run(chunk: &Chunk) -> f32 {
     #[allow(unused)]
     let instructions = &chunk.code;
     #[allow(unused)]
-    let mut pc: usize = 0;
+    let mut pc: usize = 0; // Performance note: This would likely be faster as a raw (unsafe) pointer
     let mut stack: Vec<f32> = Vec::new();
 
     macro_rules! read_byte {

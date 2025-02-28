@@ -6,6 +6,7 @@ use std::{env, fs};
 pub mod bytecode;
 mod scanner;
 pub mod vm;
+mod compiler;
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -15,7 +16,7 @@ fn main() {
 
         // This should probably be its own thing
         if path.extension() == Some(OsStr::new("bin")) {
-            let bytes = fs::read(Box::from(path)).unwrap();
+            let bytes = fs::read(Box::from(path)).expect("Failed to read file");
 
             if env::var("DISASSEMBLE").is_ok() {
                 disassembler::disassemble(bytes);
@@ -25,9 +26,13 @@ fn main() {
             }
 
             return
+        } else {
+            let string = fs::read_to_string(path).expect("Failed to read file");
+            match vm::interpret(string) {
+                Ok(code) => { println!("Exited with code: {}", code); },
+                Err(error) => { println!("{}", error); }
+            };
         }
-
-        println!("Normal execution would go here, but it is not ready yet")
     } else {
         println!("The REPL would go here, but it is removed for now")
     }
