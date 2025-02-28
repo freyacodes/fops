@@ -1,52 +1,39 @@
 use crate::bytecode::chunk::Chunk;
-use crate::scanner::{Scanner, ScannerResult, Token};
-use std::cell::Cell;
+use crate::scanner::{Scanner, Token, TokenType, PLACEHOLDER_TOKEN};
 
 pub(crate) fn compile(source: String) -> Result<Chunk, String> {
-    let mut parser = match Parser::init(source)? {
-        None => return Ok(Chunk::new()),
-        Some(parser) => parser,
-    };
+    let mut parser = Parser::init(&source);
 
+    parser.advance();
+    
     todo!()
 }
 
-struct Parser {
-    current: Cell<Token>,
-    previous: Option<Token>,
-    scanner: Scanner,
+struct Parser<'a> {
+    current: Token<'a>,
+    previous: Token<'a>,
+    scanner: Scanner<'a>,
 }
 
-impl Parser {
-    fn init(source: String) -> Result<Option<Parser>, String> {
-        let mut scanner = Scanner::new(source);
-        let token = match scanner.next() {
-            ScannerResult::Ok(token) => token,
-            ScannerResult::Err(string, _) => return Err(string),
-            ScannerResult::EOF => return Ok(None),
-        };
-
-        let test = Ok(Some(Parser {
-            current: Cell::new(token),
-            previous: None,
-            scanner,
-        }));
-
-        test
+impl<'a> Parser<'a> {
+    fn init(source: &'a str) -> Parser<'a> {
+        Parser {
+            scanner: Scanner::new(source),
+            current: PLACEHOLDER_TOKEN,
+            previous: PLACEHOLDER_TOKEN
+        }
     }
 
     fn advance(&mut self) {
-        let n = match self.scanner.next() {
-            ScannerResult::Ok(next) => next,
-            ScannerResult::Err(_, _) => {
-                todo!()
-            }
-            ScannerResult::EOF => {
-                todo!()
-            }
-        };
+        self.previous = self.current;
 
-        let old = self.current.replace(n);
-        self.previous = Some(old)
+        loop {
+            self.current = self.scanner.next();
+            if self.current.token_type == TokenType::TokenError {
+                todo!();
+            } else {
+                break;
+            }
+        }
     }
 }
