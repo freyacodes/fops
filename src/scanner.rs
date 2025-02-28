@@ -1,4 +1,4 @@
-use crate::scanner::ScannnerResult::EOF;
+use crate::scanner::ScannerResult::EOF;
 use crate::scanner::TokenType::*;
 
 pub struct Scanner {
@@ -16,7 +16,7 @@ pub struct Token<'a> {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum ScannnerResult<'a> {
+pub enum ScannerResult<'a> {
     Ok(Token<'a>),
     Err(String, usize),
     EOF,
@@ -56,7 +56,7 @@ impl<'a> Scanner {
         }
     }
 
-    pub fn next(&'a mut self) -> ScannnerResult<'a> {
+    pub fn next(&'a mut self) -> ScannerResult<'a> {
         // Skip whitespace
         loop {
             if self.is_at_end() {
@@ -88,13 +88,13 @@ impl<'a> Scanner {
 
         let c = self.peek();
         self.advance();
-        
+
         if c.is_alphabetic() || c == '_' {
             return self.identifier()
         } else if c.is_ascii_digit() {
             return self.number_literal()
         }
-        
+
         match c {
             '(' => self.make_token(TokenLeftParen),
             ')' => self.make_token(TokenRightParen),
@@ -139,18 +139,18 @@ impl<'a> Scanner {
                 if self.match_next('&') {
                     self.make_token(TokenAmpAmp)
                 } else {
-                    ScannnerResult::Err("Unexpected lone &".to_string(), self.line)
+                    ScannerResult::Err("Unexpected lone &".to_string(), self.line)
                 }
             }
             '|' => {
                 if self.match_next('|') {
                     self.make_token(TokenPipePipe)
                 } else {
-                    ScannnerResult::Err("Unexpected lone |".to_string(), self.line)
+                    ScannerResult::Err("Unexpected lone |".to_string(), self.line)
                 }
             }
             '"' => self.string_literal(),
-            _ => ScannnerResult::Err("Unexpected character".to_string(), self.line)
+            _ => ScannerResult::Err("Unexpected character".to_string(), self.line)
         }
     }
 
@@ -195,7 +195,7 @@ impl<'a> Scanner {
         self.source.len() == self.current_token_end
     }
 
-    fn string_literal(&'a mut self) -> ScannnerResult<'a> {
+    fn string_literal(&'a mut self) -> ScannerResult<'a> {
         while !self.is_at_end() && self.peek() != '"' {
             if self.peek() == '\n' {
                 self.line += 1;
@@ -204,14 +204,14 @@ impl<'a> Scanner {
         }
 
         if self.is_at_end() {
-            return ScannnerResult::Err("Unterminated string literal".to_string(), self.line);
+            return ScannerResult::Err("Unterminated string literal".to_string(), self.line);
         }
 
         self.advance();
         self.make_token(TokenString)
     }
 
-    fn identifier(&'a mut self) -> ScannnerResult<'a> {
+    fn identifier(&'a mut self) -> ScannerResult<'a> {
         loop {
             if self.is_at_end() { break; }
             let c = self.peek();
@@ -220,11 +220,11 @@ impl<'a> Scanner {
             }
             self.advance();
         }
-        
+
         self.make_token(Self::identifier_type(self.get_current_string()))
     }
 
-    fn number_literal(&'a mut self) -> ScannnerResult<'a> {
+    fn number_literal(&'a mut self) -> ScannerResult<'a> {
         while !self.is_at_end() && self.peek().is_ascii_digit() {
             self.advance();
         }
@@ -239,16 +239,16 @@ impl<'a> Scanner {
         self.make_token(TokenNumber)
     }
 
-    fn make_token(&'a self, token_type: TokenType) -> ScannnerResult<'a> {
-        ScannnerResult::Ok(Token {
+    fn make_token(&'a self, token_type: TokenType) -> ScannerResult<'a> {
+        ScannerResult::Ok(Token {
             string: self.get_current_string(),
             token_type,
             line: self.line,
         })
     }
-    
+
     fn get_current_string(&'a self) -> &'a str {
-        &self.source.as_str()[self.current_token_start..self.current_token_end]
+        &self.source[self.current_token_start..self.current_token_end]
     }
 
     fn identifier_type(str: &str) -> TokenType {
@@ -273,11 +273,11 @@ mod tests {
 
     fn match_token(scanner: &mut Scanner, token_type: TokenType, line: usize) {
         match scanner.next() {
-            ScannnerResult::Ok(token) => {
+            ScannerResult::Ok(token) => {
                 assert_eq!(token_type, token.token_type);
                 assert_eq!(line, token.line, "Got unexpected line");
             }
-            ScannnerResult::Err(string, _) => {
+            ScannerResult::Err(string, _) => {
                 panic!("Unexpected error: {}", string);
             }
             EOF => panic!("Unexpected EOF"),
@@ -286,12 +286,12 @@ mod tests {
 
     fn match_full_token(scanner: &mut Scanner, token_type: TokenType, contents: &str, line: usize) {
         match scanner.next() {
-            ScannnerResult::Ok(token) => {
+            ScannerResult::Ok(token) => {
                 assert_eq!(token_type, token.token_type);
                 assert_eq!(contents, token.string);
                 assert_eq!(line, token.line, "Got unexpected line");
             }
-            ScannnerResult::Err(string, _) => {
+            ScannerResult::Err(string, _) => {
                 panic!("Unexpected error: {}", string);
             }
             EOF => panic!("Unexpected EOF"),
@@ -356,7 +356,7 @@ mod tests {
     fn number_literals() {
         let source = "1 12 -13 5.55 -0.3".to_string();
         let mut scanner = Scanner::new(source);
-        
+
         match_full_token(&mut scanner, TokenNumber, "1", 1);
         match_full_token(&mut scanner, TokenNumber, "12", 1);
         match_token(&mut scanner, TokenMinus, 1);
@@ -371,7 +371,7 @@ mod tests {
     fn identifiers() {
         let source = "foo bar funky lettuce".to_string();
         let mut scanner = Scanner::new(source);
-        
+
         match_full_token(&mut scanner, TokenIdentifier, "foo", 1);
         match_full_token(&mut scanner, TokenIdentifier, "bar", 1);
         match_full_token(&mut scanner, TokenIdentifier, "funky", 1);
