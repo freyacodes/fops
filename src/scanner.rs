@@ -43,7 +43,7 @@ pub enum TokenType {
 
     // Keywords
     TokenElse, TokenFalse, TokenFun, TokenLet,
-    TokenIf, TokenReturn, TokenRepeat, TokenTrue, TokenWhile
+    TokenIf, TokenRepeat, TokenReturn, TokenTrue, TokenWhile
 }
 
 impl<'a> Scanner {
@@ -89,7 +89,9 @@ impl<'a> Scanner {
         let c = self.peek();
         self.advance();
         
-        if c.is_ascii_digit() {
+        if c.is_alphabetic() || c == '_' {
+            return self.identifier()
+        } else if c.is_ascii_digit() {
             return self.number_literal()
         }
         
@@ -193,14 +195,6 @@ impl<'a> Scanner {
         self.source.len() == self.current_token_end
     }
 
-    fn make_token(&'a mut self, token_type: TokenType) -> ScannnerResult<'a> {
-        ScannnerResult::Ok(Token {
-            string: &self.source.as_str()[self.current_token_start..self.current_token_end],
-            token_type,
-            line: self.line,
-        })
-    }
-
     fn string_literal(&'a mut self) -> ScannnerResult<'a> {
         while !self.is_at_end() && self.peek() != '"' {
             if self.peek() == '\n' {
@@ -217,6 +211,19 @@ impl<'a> Scanner {
         self.make_token(TokenString)
     }
 
+    fn identifier(&'a mut self) -> ScannnerResult<'a> {
+        loop {
+            if self.is_at_end() { break; }
+            let c = self.peek();
+            if !c.is_ascii_alphanumeric() && c != '_' {
+                break;
+            }
+            self.advance();
+        }
+        
+        self.make_token(Self::identifier_type(self.get_current_string()))
+    }
+
     fn number_literal(&'a mut self) -> ScannnerResult<'a> {
         while !self.is_at_end() && self.peek().is_ascii_digit() {
             self.advance();
@@ -230,6 +237,33 @@ impl<'a> Scanner {
         }
 
         self.make_token(TokenNumber)
+    }
+
+    fn make_token(&'a self, token_type: TokenType) -> ScannnerResult<'a> {
+        ScannnerResult::Ok(Token {
+            string: self.get_current_string(),
+            token_type,
+            line: self.line,
+        })
+    }
+    
+    fn get_current_string(&'a self) -> &'a str {
+        &self.source.as_str()[self.current_token_start..self.current_token_end]
+    }
+
+    fn identifier_type(str: &str) -> TokenType {
+        match str {
+            "else" => TokenElse,
+            "false" => TokenFalse,
+            "fun" => TokenFun,
+            "let" => TokenLet,
+            "if" => TokenIf,
+            "repeat" => TokenRepeat,
+            "return" => TokenReturn,
+            "true" => TokenTrue,
+            "while" => TokenWhile,
+            _ => TokenIdentifier
+        }
     }
 }
 
@@ -322,6 +356,7 @@ mod tests {
     fn number_literals() {
         let source = "1 12 -13 5.55 -0.3".to_string();
         let mut scanner = Scanner::new(source);
+        
         match_full_token(&mut scanner, TokenNumber, "1", 1);
         match_full_token(&mut scanner, TokenNumber, "12", 1);
         match_token(&mut scanner, TokenMinus, 1);
@@ -329,6 +364,35 @@ mod tests {
         match_full_token(&mut scanner, TokenNumber, "5.55", 1);
         match_token(&mut scanner, TokenMinus, 1);
         match_full_token(&mut scanner, TokenNumber, "0.3", 1);
+        assert_eq!(scanner.next(), EOF);
+    }
+
+    #[test]
+    fn identifiers() {
+        let source = "foo bar funky lettuce".to_string();
+        let mut scanner = Scanner::new(source);
+        
+        match_full_token(&mut scanner, TokenIdentifier, "foo", 1);
+        match_full_token(&mut scanner, TokenIdentifier, "bar", 1);
+        match_full_token(&mut scanner, TokenIdentifier, "funky", 1);
+        match_full_token(&mut scanner, TokenIdentifier, "lettuce", 1);
+        assert_eq!(scanner.next(), EOF);
+    }
+
+    #[test]
+    fn keywords() {
+        let source = "else false fun let if repeat return true while".to_string();
+        let mut scanner = Scanner::new(source);
+
+        match_full_token(&mut scanner, TokenElse, "else", 1);
+        match_full_token(&mut scanner, TokenFalse, "false", 1);
+        match_full_token(&mut scanner, TokenFun, "fun", 1);
+        match_full_token(&mut scanner, TokenLet, "let", 1);
+        match_full_token(&mut scanner, TokenIf, "if", 1);
+        match_full_token(&mut scanner, TokenRepeat, "repeat", 1);
+        match_full_token(&mut scanner, TokenReturn, "return", 1);
+        match_full_token(&mut scanner, TokenTrue, "true", 1);
+        match_full_token(&mut scanner, TokenWhile, "while", 1);
         assert_eq!(scanner.next(), EOF);
     }
 
