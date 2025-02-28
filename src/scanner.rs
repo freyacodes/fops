@@ -9,15 +9,15 @@ pub struct Scanner {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Token {
-    pub(crate) string: String,
-    pub(crate) token_type: TokenType,
-    pub(crate) line: usize,
+pub struct Token<'a> {
+    string: &'a str,
+    token_type: TokenType,
+    line: usize,
 }
 
 #[derive(Debug, PartialEq)]
-pub enum ScannerResult {
-    Ok(Token),
+pub enum ScannerResult<'a> {
+    Ok(Token<'a>),
     Err(String, usize),
     EOF,
 }
@@ -56,7 +56,7 @@ impl<'a> Scanner {
         }
     }
 
-    pub fn next(&'a mut self) -> ScannerResult {
+    pub fn next(&'a mut self) -> ScannerResult<'a> {
         // Skip whitespace
         loop {
             if self.is_at_end() {
@@ -195,7 +195,7 @@ impl<'a> Scanner {
         self.source.len() == self.current_token_end
     }
 
-    fn string_literal(&'a mut self) -> ScannerResult {
+    fn string_literal(&'a mut self) -> ScannerResult<'a> {
         while !self.is_at_end() && self.peek() != '"' {
             if self.peek() == '\n' {
                 self.line += 1;
@@ -211,7 +211,7 @@ impl<'a> Scanner {
         self.make_token(TokenString)
     }
 
-    fn identifier(&'a mut self) -> ScannerResult {
+    fn identifier(&'a mut self) -> ScannerResult<'a> {
         loop {
             if self.is_at_end() { break; }
             let c = self.peek();
@@ -224,7 +224,7 @@ impl<'a> Scanner {
         self.make_token(Self::identifier_type(self.get_current_string()))
     }
 
-    fn number_literal(&'a mut self) -> ScannerResult {
+    fn number_literal(&'a mut self) -> ScannerResult<'a> {
         while !self.is_at_end() && self.peek().is_ascii_digit() {
             self.advance();
         }
@@ -239,9 +239,9 @@ impl<'a> Scanner {
         self.make_token(TokenNumber)
     }
 
-    fn make_token(&'a self, token_type: TokenType) -> ScannerResult {
+    fn make_token(&'a self, token_type: TokenType) -> ScannerResult<'a> {
         ScannerResult::Ok(Token {
-            string: self.get_current_string().to_string(),
+            string: self.get_current_string(),
             token_type,
             line: self.line,
         })
