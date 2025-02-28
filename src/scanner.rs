@@ -44,7 +44,7 @@ pub enum TokenType {
     TokenIf, TokenRepeat, TokenReturn, TokenTrue, TokenWhile,
     
     // Non-tokens
-    EOF, TokenError
+    EOF, ScannerError
 }
 
 impl<'a> Scanner<'a> {
@@ -140,18 +140,18 @@ impl<'a> Scanner<'a> {
                 if self.match_next('&') {
                     self.make_token(TokenAmpAmp)
                 } else {
-                    todo!()// ScannerResult::Err("Unexpected lone &".to_string(), self.line)
+                    self.make_error("Unexpected lone &")
                 }
             }
             '|' => {
                 if self.match_next('|') {
                     self.make_token(TokenPipePipe)
                 } else {
-                    todo!()// ScannerResult::Err("Unexpected lone |".to_string(), self.line)
+                    self.make_error("Unexpected |")
                 }
             }
             '"' => self.string_literal(),
-            _ => todo!()// ScannerResult::Err("Unexpected character".to_string(), self.line)
+            _ => self.make_error("Unexpected character")
         }
     }
 
@@ -205,8 +205,7 @@ impl<'a> Scanner<'a> {
         }
 
         if self.is_at_end() {
-            todo!();
-            //return ScannerResult::Err("Unterminated string literal".to_string(), self.line);
+            return self.make_error("Unterminated string literal");
         }
 
         self.advance();
@@ -245,6 +244,14 @@ impl<'a> Scanner<'a> {
         Token {
             string: self.get_current_string(),
             token_type,
+            line: self.line,
+        }
+    }
+    
+    fn make_error(&self, message: &'static str) -> Token<'static> {
+        Token {
+            string: message,
+            token_type: ScannerError,
             line: self.line,
         }
     }
