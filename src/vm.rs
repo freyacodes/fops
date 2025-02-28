@@ -1,10 +1,10 @@
-use crate::bytecode::codes;
-use std::ops::Neg;
 use crate::bytecode::chunk::Chunk;
+use crate::bytecode::codes;
 use crate::compiler;
+use std::ops::Neg;
 
 pub fn interpret(source: String) -> Result<f32, String> {
-    let chunk = compiler::compile(source)?;
+    let chunk = compiler::compile(source).or(Err("Compilation failed"))?;
     Ok(run(&chunk))
 }
 
