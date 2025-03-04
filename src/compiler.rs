@@ -132,7 +132,23 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_precedence(&mut self, precedence: Precedence) {
-        todo!()
+        self.advance();
+        let rule = self.get_rule(self.previous.token_type).prefix;
+        
+        let prefix_rule = match rule {
+            None => {
+                self.error("Expected expression.");
+                return;
+            }
+            Some(prefix_rule) => prefix_rule,
+        };
+        
+        prefix_rule(self);
+        while precedence <= self.get_rule(self.previous.token_type).precedence {
+            self.advance();
+            let infix_rule = self.get_rule(self.previous.token_type).infix;
+            infix_rule.expect("This should only be reachable for some infix rule")(self);
+        }
     }
 
     fn get_rule(&self, operator_type: TokenType) -> &ParseRule<'a> {
