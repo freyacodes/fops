@@ -1,7 +1,9 @@
 use crate::bytecode::chunk::Chunk;
 use crate::bytecode::codes::*;
+use crate::compiler::Precedence::*;
 use crate::scanner::TokenType::*;
 use crate::scanner::{Scanner, Token, TokenType, PLACEHOLDER_TOKEN};
+use strum::VariantArray;
 
 pub(crate) fn compile(source: String) -> Result<Chunk, ()> {
     let mut chunk = Chunk::new();
@@ -24,6 +26,7 @@ struct Parser<'a> {
     scanner: Scanner<'a>,
     had_error: bool,
     panic_mode: bool,
+    rules: Vec<ParseRule<'a>>,
 }
 
 #[derive(Ord, PartialOrd, Eq, PartialEq)]
@@ -51,24 +54,89 @@ type ParseFn<'a> = fn(&mut Parser<'a>) -> ();
 
 impl<'a> Parser<'a> {
     fn init(source: &'a str, chunk: &'a mut Chunk) -> Parser<'a> {
-        Parser {
+        let mut parser = Parser {
             scanner: Scanner::new(source),
             chunk,
             current: PLACEHOLDER_TOKEN,
             previous: PLACEHOLDER_TOKEN,
             had_error: false,
             panic_mode: false,
-        }
+            rules: Vec::new(),
+        };
+
+        parser.init_rules();
+        parser
+    }
+
+    fn init_rules(&mut self) {
+        TokenType::VARIANTS
+            .iter()
+            .for_each(|token_type: &TokenType| {
+                fn rule<'a>(
+                    prefix: Option<ParseFn<'a>>,
+                    infix: Option<ParseFn<'a>>,
+                    precedence: Precedence,
+                ) -> ParseRule<'a> {
+                    ParseRule {
+                        prefix,
+                        infix,
+                        precedence,
+                    }
+                }
+
+                #[rustfmt::skip]
+                let rule = match token_type {
+                    TokenLeftParen =>    rule(Some(Self::grouping), None,               PrecNone),
+                    TokenRightParen =>   rule(None,                 None,               PrecNone),
+                    TokenLeftBrace =>    rule(None,                 None,               PrecNone),
+                    TokenRightBrace =>   rule(None,                 None,               PrecNone),
+                    TokenComma =>        rule(None,                 None,               PrecNone),
+                    TokenDot =>          rule(None,                 None,               PrecNone),
+                    TokenMinus =>        rule(Some(Self::unary),    Some(Self::binary), PrecTerm),
+                    TokenPlus =>         rule(None,                 Some(Self::binary), PrecTerm),
+                    TokenSemicolon =>    rule(None,                 None,               PrecNone),
+                    TokenSlash =>        rule(None,                 Some(Self::binary), PrecFactor),
+                    TokenAsterisk =>     rule(None,                 Some(Self::binary), PrecFactor),
+                    TokenBang =>         rule(None,                 None,               PrecNone),
+                    TokenBangEqual =>    rule(None,                 None,               PrecNone),
+                    TokenEqual =>        rule(None,                 None,               PrecNone),
+                    TokenEqualEqual =>   rule(None,                 None,               PrecNone),
+                    TokenLess =>         rule(None,                 None,               PrecNone),
+                    TokenLessEqual =>    rule(None,                 None,               PrecNone),
+                    TokenGreater =>      rule(None,                 None,               PrecNone),
+                    TokenGreaterEqual => rule(None,                 None,               PrecNone),
+                    TokenAmpAmp =>       rule(None,                 None,               PrecNone),
+                    TokenPipePipe =>     rule(None,                 None,               PrecNone),
+                    TokenIdentifier =>   rule(None,                 None,               PrecNone),
+                    TokenString =>       rule(None,                 None,               PrecNone),
+                    TokenNumber =>       rule(Some(Self::number),   None,               PrecNone),
+                    TokenElse =>         rule(None,                 None,               PrecNone),
+                    TokenFalse =>        rule(None,                 None,               PrecNone),
+                    TokenFun =>          rule(None,                 None,               PrecNone),
+                    TokenLet =>          rule(None,                 None,               PrecNone),
+                    TokenIf =>           rule(None,                 None,               PrecNone),
+                    TokenRepeat =>       rule(None,                 None,               PrecNone),
+                    TokenReturn =>       rule(None,                 None,               PrecNone),
+                    TokenTrue =>         rule(None,                 None,               PrecNone),
+                    TokenWhile =>        rule(None,                 None,               PrecNone),
+                    EOF =>               rule(None,                 None,               PrecNone),
+                    ScannerError =>      rule(None,                 None,               PrecNone),
+                };
+
+                self.rules.push(rule);
+            });
     }
 
     fn expression(&mut self) {
-        self.parse_presedence(Precedence::PrecAssignment);
+        self.parse_precedence(PrecAssignment);
     }
 
-    fn parse_presedence(&mut self, precedence: Precedence) {}
-
-    fn get_rule(&self, operator_type: TokenType) -> ParseRule<'a> {
+    fn parse_precedence(&mut self, precedence: Precedence) {
         todo!()
+    }
+
+    fn get_rule(&self, operator_type: TokenType) -> &ParseRule<'a> {
+        self.rules.get(operator_type as usize).unwrap()
     }
 
     fn consume(&mut self, token: TokenType, message: &str) {
@@ -158,7 +226,7 @@ impl<'a> Parser<'a> {
     fn binary(&mut self) {
         let operator_type = self.previous.token_type;
         let rule = self.get_rule(operator_type);
-        self.parse_presedence(rule.precedence.next());
+        self.parse_precedence(rule.precedence.next());
 
         match operator_type {
             TokenPlus => self.emit_byte(OP_ADD),
@@ -173,17 +241,17 @@ impl<'a> Parser<'a> {
 impl Precedence {
     fn next(&self) -> Precedence {
         match self {
-            Precedence::PrecNone => Precedence::PrecAssignment,
-            Precedence::PrecAssignment => Precedence::PrecOr,
-            Precedence::PrecOr => Precedence::PrecAnd,
-            Precedence::PrecAnd => Precedence::PrecEquality,
-            Precedence::PrecEquality => Precedence::PrecComparison,
-            Precedence::PrecComparison => Precedence::PrecTerm,
-            Precedence::PrecTerm => Precedence::PrecFactor,
-            Precedence::PrecFactor => Precedence::PrecUnary,
-            Precedence::PrecUnary => Precedence::PrecCall,
-            Precedence::PrecCall => Precedence::PrecPrimary,
-            Precedence::PrecPrimary => Precedence::PrecNone,
+            PrecNone => PrecAssignment,
+            PrecAssignment => PrecOr,
+            PrecOr => PrecAnd,
+            PrecAnd => PrecEquality,
+            PrecEquality => PrecComparison,
+            PrecComparison => PrecTerm,
+            PrecTerm => PrecFactor,
+            PrecFactor => PrecUnary,
+            PrecUnary => PrecCall,
+            PrecCall => PrecPrimary,
+            PrecPrimary => PrecNone,
         }
     }
 }

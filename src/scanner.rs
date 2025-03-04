@@ -1,4 +1,5 @@
 use crate::scanner::TokenType::*;
+use strum::VariantArray;
 
 pub struct Scanner<'a> {
     source: &'a str,
@@ -20,7 +21,7 @@ pub const PLACEHOLDER_TOKEN: Token = Token {
     line: 0
 };
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, VariantArray)]
 #[rustfmt::skip]
 pub enum TokenType {
     // Single character tokens
