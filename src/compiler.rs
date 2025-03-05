@@ -8,7 +8,10 @@ use strum::VariantArray;
 pub(crate) fn compile(source: String) -> Result<Chunk, ()> {
     let mut chunk = Chunk::new();
     let mut parser = Parser::init(&source, &mut chunk);
+
     parser.advance();
+    parser.expression();
+    parser.consume(EOF, "Expected end of expression.");
 
     match parser.had_error {
         true => Err(()),
@@ -134,7 +137,7 @@ impl<'a> Parser<'a> {
     fn parse_precedence(&mut self, precedence: Precedence) {
         self.advance();
         let rule = self.get_rule(self.previous.token_type).prefix;
-        
+
         let prefix_rule = match rule {
             None => {
                 self.error("Expected expression.");
@@ -142,9 +145,9 @@ impl<'a> Parser<'a> {
             }
             Some(prefix_rule) => prefix_rule,
         };
-        
+
         prefix_rule(self);
-        while precedence <= self.get_rule(self.previous.token_type).precedence {
+        while precedence <= self.get_rule(self.current.token_type).precedence {
             self.advance();
             let infix_rule = self.get_rule(self.previous.token_type).infix;
             infix_rule.expect("This should only be reachable for some infix rule")(self);
@@ -168,7 +171,7 @@ impl<'a> Parser<'a> {
 
         loop {
             self.current = self.scanner.next();
-            if self.current.token_type != TokenType::ScannerError {
+            if self.current.token_type != ScannerError {
                 break;
             } else {
                 self.error_at_current(self.current.string);
@@ -199,15 +202,15 @@ impl<'a> Parser<'a> {
         }
         self.panic_mode = true;
 
-        eprint!("[Line {}] Error", token.line);
+        eprint!("[Line {}] Error ", token.line);
 
-        if token.token_type == TokenType::EOF {
-            eprint!("at end of file");
-        } else if token.token_type != TokenType::ScannerError {
-            eprint!(" at {}", token.string);
+        if token.token_type == EOF {
+            eprint!("at end of file:");
+        } else if token.token_type != ScannerError {
+            eprint!("at {}: ", token.string);
         }
 
-        eprintln!("{}", message);
+        eprintln!(" {}", message);
         self.had_error = true;
     }
 }
