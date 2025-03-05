@@ -7,6 +7,7 @@ pub mod bytecode;
 mod scanner;
 pub mod vm;
 mod compiler;
+mod repl;
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -34,6 +35,6 @@ fn main() {
             };
         }
     } else {
-        println!("The REPL would go here, but it is removed for now")
+        repl::start()
     }
 }
