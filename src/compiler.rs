@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use crate::bytecode::chunk::Chunk;
 use crate::bytecode::codes::*;
 use crate::compiler::Precedence::*;
