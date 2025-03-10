@@ -32,3 +32,69 @@ fn negation() {
     match_byte(&mut code, OP_RETURN);
     assert_empty(&code);
 }
+
+#[test]
+fn addition() {
+    let mut code = compile("2 + 3");
+    match_byte(&mut code, OP_CONSTANT);
+    match_f32(&mut code, 2.0);
+    match_byte(&mut code, OP_CONSTANT);
+    match_f32(&mut code, 3.0);
+    match_byte(&mut code, OP_ADD);
+    match_byte(&mut code, OP_RETURN);
+    assert_empty(&code);
+}
+
+#[test]
+fn subtraction() {
+    let mut code = compile("2 - 3");
+    match_byte(&mut code, OP_CONSTANT);
+    match_f32(&mut code, 2.0);
+    match_byte(&mut code, OP_CONSTANT);
+    match_f32(&mut code, 3.0);
+    match_byte(&mut code, OP_SUBTRACT);
+    match_byte(&mut code, OP_RETURN);
+    assert_empty(&code);
+}
+
+#[test]
+fn multiplication() {
+    let mut code = compile("2 * 3");
+    match_byte(&mut code, OP_CONSTANT);
+    match_f32(&mut code, 2.0);
+    match_byte(&mut code, OP_CONSTANT);
+    match_f32(&mut code, 3.0);
+    match_byte(&mut code, OP_MULTIPLY);
+    match_byte(&mut code, OP_RETURN);
+    assert_empty(&code);
+}
+
+#[test]
+fn division() {
+    let mut code = compile("2 + 3 / 0.5");
+    match_byte(&mut code, OP_CONSTANT);
+    match_f32(&mut code, 2.0);
+    match_byte(&mut code, OP_CONSTANT);
+    match_f32(&mut code, 3.0);
+    match_byte(&mut code, OP_CONSTANT);
+    match_f32(&mut code, 0.5);
+    match_byte(&mut code, OP_DIVIDE);
+    match_byte(&mut code, OP_ADD);
+    match_byte(&mut code, OP_RETURN);
+    assert_empty(&code);
+}
+
+#[test]
+fn grouping() {
+    let mut code = compile("(2 + 3) / 0.5");
+    match_byte(&mut code, OP_CONSTANT);
+    match_f32(&mut code, 2.0);
+    match_byte(&mut code, OP_CONSTANT);
+    match_f32(&mut code, 3.0);
+    match_byte(&mut code, OP_ADD);
+    match_byte(&mut code, OP_CONSTANT);
+    match_f32(&mut code, 0.5);
+    match_byte(&mut code, OP_DIVIDE);
+    match_byte(&mut code, OP_RETURN);
+    assert_empty(&code);
+}
