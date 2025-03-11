@@ -1,3 +1,5 @@
+mod value;
+
 use crate::bytecode::chunk::Chunk;
 use crate::bytecode::codes;
 use crate::compiler;
