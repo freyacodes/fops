@@ -22,8 +22,10 @@ fn main() {
             if env::var("DISASSEMBLE").is_ok() {
                 disassembler::disassemble(bytes);
             } else {
-                let value = vm::run(&bytes.into());
-                println!("Program completed with value {:?}", value);
+                match vm::run(&bytes.into()) {
+                    Ok(value) => println!("Program completed with value {:?}", value),
+                    Err(error) => eprintln!("Runtime error: {}", error),
+                }
             }
 
             return

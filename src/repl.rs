@@ -12,12 +12,8 @@ pub fn start() {
         stdin.read_line(&mut buffer).expect("Failure while reading stdin");
 
         match vm::interpret(buffer) {
-            Ok(value) => {
-                println!("{}", value.to_string());
-            }
-            Err(error) => {
-                println!("{}", error);
-            }
+            Ok(value) => println!("{}", value.to_string()),
+            Err(error) => println!("Runtime error: {}", error),
         }
     }
 }
