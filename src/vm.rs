@@ -4,7 +4,7 @@ use crate::bytecode::chunk::Chunk;
 use crate::bytecode::codes;
 use crate::compiler;
 use std::ops::Neg;
-use crate::vm::value::Value;
+use crate::vm::value::{Value, FALSE, NIL, TRUE};
 
 pub fn interpret(source: String) -> Result<Value, String> {
     let chunk = compiler::compile(source).or(Err("Compilation failed"))?;
@@ -58,6 +58,9 @@ pub fn run(chunk: &Chunk) -> Result<Value, String> {
 
         match instruction {
             codes::OP_CONSTANT => stack.push(Value::Number(read_f64!())),
+            codes::OP_NIL => stack.push(NIL),
+            codes::OP_TRUE => stack.push(TRUE),
+            codes::OP_FALSE => stack.push(FALSE),
             codes::OP_NEGATE => {
                 let value = stack.last_mut().expect("Stack is empty");
                 match value {
@@ -86,8 +89,9 @@ fn peek(stack: &Vec<Value>, offset_from_end: usize) -> Option<&Value> {
     stack.get(len - 1 - offset_from_end)
 }
 
-fn runtime_error(_error: String) -> Result<Value, String> {
-    todo!()
+fn runtime_error(error: String) -> Result<Value, String> {
+    // TODO: Add line number
+    Err(error)
 }
 
 #[cfg(test)]
@@ -131,7 +135,11 @@ mod tests {
 
     #[test]
     fn illegal_negation() {
-        todo!()
+        let mut chunk = Chunk::new();
+        chunk.write_simple(OP_FALSE);
+        chunk.write_simple(OP_NEGATE);
+        chunk.write_simple(OP_RETURN);
+        assert_runtime_error(run(&chunk));
     }
 
     #[test]
@@ -146,7 +154,12 @@ mod tests {
     
     #[test]
     fn illegal_addition() {
-        todo!()
+        let mut chunk = Chunk::new();
+        chunk.write_simple(OP_FALSE);
+        chunk.write_constant_f64(15.0);
+        chunk.write_simple(OP_ADD);
+        chunk.write_simple(OP_RETURN);
+        assert_runtime_error(run(&chunk));
     }
 
     #[test]
