@@ -1,15 +1,19 @@
+use std::fmt::{Display, Formatter};
+
+#[derive(Debug)]
 pub enum Value {
     Number(f64),
     Bool(bool),
     Nil
 }
 
-impl Value {
-    pub fn to_string(&self) -> String {
+impl Display for Value {
+
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Value::Number(number) => number.to_string(),
-            Value::Bool(bool) => bool.to_string(),
-            Value::Nil => "nil".to_string()
+            Value::Number(number) => write!(f, "{}", number),
+            Value::Bool(bool) => write!(f, "{}", bool),
+            Value::Nil => write!(f, "nil"),
         }
     }
 }

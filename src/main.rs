@@ -22,15 +22,15 @@ fn main() {
             if env::var("DISASSEMBLE").is_ok() {
                 disassembler::disassemble(bytes);
             } else {
-                let code = vm::run(&bytes.into());
-                println!("Program completed with code {}", code);
+                let value = vm::run(&bytes.into());
+                println!("Program completed with value {:?}", value);
             }
 
             return
         } else {
             let string = fs::read_to_string(path).expect("Failed to read file");
             match vm::interpret(string) {
-                Ok(code) => { println!("Exited with code: {}", code); },
+                Ok(value) => { println!("Exited with value: {}", value.to_string()); },
                 Err(error) => { println!("{}", error); }
             };
         }
