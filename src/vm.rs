@@ -105,8 +105,15 @@ mod tests {
         }
     }
     
+    fn assert_runtime_error(result: Result<Value, String>) {
+        match result {
+            Ok(value) => panic!("Expected runtime error, got {}", value),
+            Err(_) => {}
+        }
+    }
+    
     #[test]
-    fn test_constant() {
+    fn constant() {
         let mut chunk = Chunk::new();
         chunk.write_constant_f64(123.0);
         chunk.write_simple(OP_RETURN);
@@ -114,7 +121,7 @@ mod tests {
     }
 
     #[test]
-    fn test_negate() {
+    fn negation() {
         let mut chunk = Chunk::new();
         chunk.write_constant_f64(123.0);
         chunk.write_simple(OP_NEGATE);
@@ -123,7 +130,12 @@ mod tests {
     }
 
     #[test]
-    fn test_addition() {
+    fn illegal_negation() {
+        todo!()
+    }
+
+    #[test]
+    fn addition() {
         let mut chunk = Chunk::new();
         chunk.write_constant_f64(15.0);
         chunk.write_constant_f64(5.0);
@@ -131,9 +143,14 @@ mod tests {
         chunk.write_simple(OP_RETURN);
         assert_number(20.0, run(&chunk))
     }
+    
+    #[test]
+    fn illegal_addition() {
+        todo!()
+    }
 
     #[test]
-    fn test_subtraction() {
+    fn subtraction() {
         let mut chunk = Chunk::new();
         chunk.write_constant_f64(15.0);
         chunk.write_constant_f64(5.0);
@@ -143,7 +160,7 @@ mod tests {
     }
 
     #[test]
-    fn test_division() {
+    fn division() {
         let mut chunk = Chunk::new();
         chunk.write_constant_f64(15.0);
         chunk.write_constant_f64(5.0);
@@ -153,7 +170,7 @@ mod tests {
     }
 
     #[test]
-    fn test_multiplication() {
+    fn multiplication() {
         let mut chunk = Chunk::new();
         chunk.write_constant_f64(15.0);
         chunk.write_constant_f64(5.0);
