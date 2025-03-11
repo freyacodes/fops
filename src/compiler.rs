@@ -226,8 +226,8 @@ impl<'a> Parser<'a> {
     }
 
     fn number(&mut self) {
-        match self.previous.string.parse::<f32>() {
-            Ok(value) => self.chunk.write_constant_f32(value),
+        match self.previous.string.parse::<f64>() {
+            Ok(value) => self.chunk.write_constant_f64(value),
             Err(_) => self.error("Failed to parse number."),
         }
     }

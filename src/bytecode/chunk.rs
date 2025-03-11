@@ -19,8 +19,8 @@ impl Chunk {
         self.code.push(op);
     }
 
-    pub fn write_constant_f32(&mut self, float: f32) {
+    pub fn write_constant_f64(&mut self, float: f64) {
         self.code.push(OP_CONSTANT);
-        f32::to_be_bytes(float).iter().for_each(|b| self.code.push(*b));
+        f64::to_be_bytes(float).iter().for_each(|b| self.code.push(*b));
     }
 }
