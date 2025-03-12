@@ -41,7 +41,7 @@ pub enum TokenType {
     TokenIdentifier, TokenString, TokenNumber,
 
     // Keywords
-    TokenElse, TokenFalse, TokenFun, TokenLet,
+    TokenElse, TokenFalse, TokenFun, TokenLet, TokenNil,
     TokenIf, TokenRepeat, TokenReturn, TokenTrue, TokenWhile,
     
     // Non-tokens
@@ -267,6 +267,7 @@ impl<'a> Scanner<'a> {
             "false" => TokenFalse,
             "fun" => TokenFun,
             "let" => TokenLet,
+            "nil" => TokenNil,
             "if" => TokenIf,
             "repeat" => TokenRepeat,
             "return" => TokenReturn,

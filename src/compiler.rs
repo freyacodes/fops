@@ -117,13 +117,14 @@ impl<'a> Parser<'a> {
                     TokenString =>       rule(None,                 None,               PrecNone),
                     TokenNumber =>       rule(Some(Self::number),   None,               PrecNone),
                     TokenElse =>         rule(None,                 None,               PrecNone),
-                    TokenFalse =>        rule(None,                 None,               PrecNone),
+                    TokenFalse =>        rule(Some(Self::literal),  None,               PrecNone),
                     TokenFun =>          rule(None,                 None,               PrecNone),
                     TokenLet =>          rule(None,                 None,               PrecNone),
+                    TokenNil =>          rule(Some(Self::literal),  None,               PrecNone),
                     TokenIf =>           rule(None,                 None,               PrecNone),
                     TokenRepeat =>       rule(None,                 None,               PrecNone),
                     TokenReturn =>       rule(None,                 None,               PrecNone),
-                    TokenTrue =>         rule(None,                 None,               PrecNone),
+                    TokenTrue =>         rule(Some(Self::literal),  None,               PrecNone),
                     TokenWhile =>        rule(None,                 None,               PrecNone),
                     EOF =>               rule(None,                 None,               PrecNone),
                     ScannerError =>      rule(None,                 None,               PrecNone),
@@ -238,6 +239,15 @@ impl<'a> Parser<'a> {
 
         match operator_type {
             TokenMinus => self.emit_byte(OP_NEGATE),
+            _ => unreachable!(),
+        }
+    }
+    
+    fn literal(&mut self) {
+        match self.previous.token_type {
+            TokenNil => self.emit_byte(OP_NIL),
+            TokenTrue => self.emit_byte(OP_TRUE),
+            TokenFalse => self.emit_byte(OP_FALSE),
             _ => unreachable!(),
         }
     }

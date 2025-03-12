@@ -102,3 +102,25 @@ fn grouping() {
     match_byte(&mut code, OP_RETURN);
     assert_empty(&code);
 }
+
+#[test]
+fn op_literals() {
+    {
+        let mut code = compile("nil");
+        match_byte(&mut code, OP_NIL);
+        match_byte(&mut code, OP_RETURN);
+        assert_empty(&code);
+    }
+    {
+        let mut code = compile("true");
+        match_byte(&mut code, OP_TRUE);
+        match_byte(&mut code, OP_RETURN);
+        assert_empty(&code);
+    }
+    {
+        let mut code = compile("false");
+        match_byte(&mut code, OP_FALSE);
+        match_byte(&mut code, OP_RETURN);
+        assert_empty(&code);
+    }
+}
