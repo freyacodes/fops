@@ -44,9 +44,9 @@ pub fn run(chunk: &Chunk) -> Result<Value, String> {
             let result = if let (Value::Number(left), Value::Number(right)) = (left, right) {
                 left $operator right
             } else {
-                return runtime_error(format!("Cannot perform {} between {} and {}", $operation_name, left, right));
+                return runtime_error(pc, &chunk, format!("Cannot perform {} between {} and {}", $operation_name, left, right));
             };
-            
+
             stack.pop().unwrap();
             stack.pop().unwrap();
             stack.push(Value::Number(result));
@@ -68,7 +68,7 @@ pub fn run(chunk: &Chunk) -> Result<Value, String> {
                         *number = number.neg()
                     }
                     _ => {
-                        return runtime_error(format!("Attempt to negate {}", value.to_string()))
+                        return runtime_error(pc, &chunk, format!("Attempt to negate {}", value.to_string()))
                     },
                 };
             }
@@ -89,9 +89,13 @@ fn peek(stack: &Vec<Value>, offset_from_end: usize) -> Option<&Value> {
     stack.get(len - 1 - offset_from_end)
 }
 
-fn runtime_error(error: String) -> Result<Value, String> {
-    // TODO: Add line number
-    Err(error)
+fn runtime_error(pc: usize, chunk: &Chunk, error: String) -> Result<Value, String> {
+    let line = chunk.get_line(pc - 1);
+    if line == 0 {
+        Err(error)
+    } else {
+        Err(format!("[Line {}] {}", line, error))
+    }
 }
 
 #[cfg(test)]
@@ -108,14 +112,14 @@ mod tests {
             _ => panic!("Expected Number {}, got {}", left, right)
         }
     }
-    
+
     fn assert_runtime_error(result: Result<Value, String>) {
         match result {
             Ok(value) => panic!("Expected runtime error, got {}", value),
             Err(_) => {}
         }
     }
-    
+
     #[test]
     fn constant() {
         let mut chunk = Chunk::new();
@@ -151,7 +155,7 @@ mod tests {
         chunk.write0(OP_RETURN);
         assert_number(20.0, run(&chunk))
     }
-    
+
     #[test]
     fn illegal_addition() {
         let mut chunk = Chunk::new();

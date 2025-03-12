@@ -30,11 +30,15 @@ impl Chunk {
     }
 
     pub fn write_constant_f64(&mut self, float: f64, line: u16) {
-        self.code.push(OP_CONSTANT);
+        self.write(OP_CONSTANT, line);
         f64::to_be_bytes(float).iter().for_each(|b| self.write(*b, line));
     }
 
     pub fn write_constant_f64_0(&mut self, float: f64) {
         self.write_constant_f64(float, 0)
+    }
+    
+    pub fn get_line(&self, index: usize) -> u16 {
+        self.lines[index]
     }
 }
