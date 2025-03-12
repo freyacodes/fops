@@ -119,76 +119,76 @@ mod tests {
     #[test]
     fn constant() {
         let mut chunk = Chunk::new();
-        chunk.write_constant_f64(123.0);
-        chunk.write_simple(OP_RETURN);
+        chunk.write_constant_f64(123.0, 0);
+        chunk.write0(OP_RETURN);
         assert_number(123.0, run(&chunk));
     }
 
     #[test]
     fn negation() {
         let mut chunk = Chunk::new();
-        chunk.write_constant_f64(123.0);
-        chunk.write_simple(OP_NEGATE);
-        chunk.write_simple(OP_RETURN);
+        chunk.write_constant_f64_0(123.0);
+        chunk.write0(OP_NEGATE);
+        chunk.write0(OP_RETURN);
         assert_number(-123.0, run(&chunk))
     }
 
     #[test]
     fn illegal_negation() {
         let mut chunk = Chunk::new();
-        chunk.write_simple(OP_FALSE);
-        chunk.write_simple(OP_NEGATE);
-        chunk.write_simple(OP_RETURN);
+        chunk.write0(OP_FALSE);
+        chunk.write0(OP_NEGATE);
+        chunk.write0(OP_RETURN);
         assert_runtime_error(run(&chunk));
     }
 
     #[test]
     fn addition() {
         let mut chunk = Chunk::new();
-        chunk.write_constant_f64(15.0);
-        chunk.write_constant_f64(5.0);
-        chunk.write_simple(OP_ADD);
-        chunk.write_simple(OP_RETURN);
+        chunk.write_constant_f64_0(15.0);
+        chunk.write_constant_f64_0(5.0);
+        chunk.write0(OP_ADD);
+        chunk.write0(OP_RETURN);
         assert_number(20.0, run(&chunk))
     }
     
     #[test]
     fn illegal_addition() {
         let mut chunk = Chunk::new();
-        chunk.write_simple(OP_FALSE);
-        chunk.write_constant_f64(15.0);
-        chunk.write_simple(OP_ADD);
-        chunk.write_simple(OP_RETURN);
+        chunk.write0(OP_FALSE);
+        chunk.write_constant_f64_0(15.0);
+        chunk.write0(OP_ADD);
+        chunk.write0(OP_RETURN);
         assert_runtime_error(run(&chunk));
     }
 
     #[test]
     fn subtraction() {
         let mut chunk = Chunk::new();
-        chunk.write_constant_f64(15.0);
-        chunk.write_constant_f64(5.0);
-        chunk.write_simple(OP_SUBTRACT);
-        chunk.write_simple(OP_RETURN);
+        chunk.write_constant_f64_0(15.0);
+        chunk.write_constant_f64_0(5.0);
+        chunk.write0(OP_SUBTRACT);
+        chunk.write0(OP_RETURN);
         assert_number(10.0, run(&chunk))
     }
 
     #[test]
     fn division() {
         let mut chunk = Chunk::new();
-        chunk.write_constant_f64(15.0);
-        chunk.write_constant_f64(5.0);
-        chunk.write_simple(OP_DIVIDE);
-        chunk.write_simple(OP_RETURN);
+        chunk.write_constant_f64_0(15.0);
+        chunk.write_constant_f64_0(5.0);
+        chunk.write0(OP_DIVIDE);
+        chunk.write0(OP_RETURN);
         assert_number(3.0, run(&chunk))
     }
 
     #[test]
     fn multiplication() {
         let mut chunk = Chunk::new();
-        chunk.write_constant_f64(15.0);
-        chunk.write_constant_f64(5.0);
-        chunk.write_simple(OP_MULTIPLY);
-        chunk.write_simple(OP_RETURN);
+        chunk.write_constant_f64_0(15.0);
+        chunk.write_constant_f64_0(5.0);
+        chunk.write0(OP_MULTIPLY);
+        chunk.write0(OP_RETURN);
         assert_number(75.0, run(&chunk))
     }
 }

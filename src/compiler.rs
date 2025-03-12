@@ -183,12 +183,12 @@ impl<'a> Parser<'a> {
     }
 
     fn _emit_bytes(&mut self, byte1: u8, byte2: u8) {
-        self.chunk.write_simple(byte1);
-        self.chunk.write_simple(byte2);
+        self.chunk.write(byte1, self.previous.line as u16);
+        self.chunk.write(byte2, self.previous.line as u16);
     }
 
     fn emit_byte(&mut self, byte: u8) {
-        self.chunk.write_simple(byte);
+        self.chunk.write(byte, self.previous.line as u16);
     }
 
     fn error_at_current(&mut self, message: &str) {
@@ -227,7 +227,7 @@ impl<'a> Parser<'a> {
 
     fn number(&mut self) {
         match self.previous.string.parse::<f64>() {
-            Ok(value) => self.chunk.write_constant_f64(value),
+            Ok(value) => self.chunk.write_constant_f64(value, self.previous.line as u16),
             Err(_) => self.error("Failed to parse number."),
         }
     }
