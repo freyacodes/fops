@@ -1,4 +1,5 @@
 mod value;
+#[cfg(test)]
 mod tests;
 
 use crate::bytecode::chunk::Chunk;
