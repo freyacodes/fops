@@ -103,7 +103,7 @@ impl<'a> Parser<'a> {
                     TokenSemicolon =>    rule(None,                 None,               PrecNone),
                     TokenSlash =>        rule(None,                 Some(Self::binary), PrecFactor),
                     TokenAsterisk =>     rule(None,                 Some(Self::binary), PrecFactor),
-                    TokenBang =>         rule(None,                 None,               PrecNone),
+                    TokenBang =>         rule(Some(Self::unary),    None,               PrecNone),
                     TokenBangEqual =>    rule(None,                 None,               PrecNone),
                     TokenEqual =>        rule(None,                 None,               PrecNone),
                     TokenEqualEqual =>   rule(None,                 None,               PrecNone),
@@ -239,6 +239,7 @@ impl<'a> Parser<'a> {
 
         match operator_type {
             TokenMinus => self.emit_byte(OP_NEGATE),
+            TokenBang => self.emit_byte(OP_NOT),
             _ => unreachable!(),
         }
     }
