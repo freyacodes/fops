@@ -112,3 +112,21 @@ fn multiplication() {
     chunk.write0(OP_RETURN);
     assert_number(75.0, run(&chunk))
 }
+
+#[test]
+fn not_true() {
+    let mut chunk = Chunk::new();
+    chunk.write0(OP_TRUE);
+    chunk.write0(OP_NOT);
+    chunk.write0(OP_RETURN);
+    assert_eq!(FALSE, run(&chunk).unwrap());
+}
+
+#[test]
+fn not_false() {
+    let mut chunk = Chunk::new();
+    chunk.write0(OP_FALSE);
+    chunk.write0(OP_NOT);
+    chunk.write0(OP_RETURN);
+    assert_eq!(TRUE, run(&chunk).unwrap());
+}
