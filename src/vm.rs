@@ -90,7 +90,7 @@ fn peek(stack: &Vec<Value>, offset_from_end: usize) -> Option<&Value> {
     stack.get(len - 1 - offset_from_end)
 }
 
-fn runtime_error(pc: usize, chunk: &Chunk, error: String) -> Result<Value, String> {
+fn runtime_error<T>(pc: usize, chunk: &Chunk, error: String) -> Result<T, String> {
     let line = chunk.get_line(pc - 1);
     if line == 0 {
         Err(error)

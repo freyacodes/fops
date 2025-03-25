@@ -4,7 +4,7 @@ pub const NIL: Value = Value::Nil;
 pub const TRUE: Value = Value::Bool(true);
 pub const FALSE: Value = Value::Bool(false);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     Number(f64),
     Bool(bool),
