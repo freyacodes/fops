@@ -6,7 +6,16 @@ version = 4
 name = "fops"
 version = "0.1.0"
 dependencies = [
+ "fops-macros",
  "strum",
+]
+
+[[package]]
+name = "fops-macros"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]
