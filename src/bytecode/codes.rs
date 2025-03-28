@@ -1,3 +1,11 @@
+use fops_macros::opcodes;
+
+opcodes! {
+    opcodes:
+    0x00 = OP_CONSTANT len 5,
+    0x01 = OP_NIL,
+}
+
 pub const OP_CONSTANT: u8 = 0x00;
 pub const OP_NIL: u8 = 0x01;
 pub const OP_TRUE: u8 = 0x02;
