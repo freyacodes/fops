@@ -1,12 +1,27 @@
 use proc_macro::TokenStream;
+use quote::{quote, ToTokens, TokenStreamExt};
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
-use syn::Token;
+use syn::{parse_macro_input, Token};
 
 #[proc_macro]
 pub fn opcodes(item: TokenStream) -> TokenStream {
-    let input = syn::parse::<OpcodesInput>(item).expect("Failed to parse");
-    TokenStream::new()
+    let input = parse_macro_input!(item as OpcodesInput);
+
+    let module_ident = input.module_ident;
+    let entries = input.entries.iter();
+    let count = entries.len();
+    let instruction_names = input.entries.iter().map(|e| e.ident.to_string()).collect::<Vec<String>>();
+    let instruction_sizes = input.entries.iter().map(|e| e.length as u8).collect::<Vec<u8>>();
+
+    quote!(
+        pub mod #module_ident {
+            #(#entries)*
+
+            pub const INSTRUCTION_NAMES: [&str; #count] = [#(#instruction_names,)*];
+            pub const INSTRUCTION_LENGTH: [u8; #count] = [#(#instruction_sizes,)*];
+        }
+    ).into()
 }
 
 struct OpcodesInput {
@@ -47,5 +62,15 @@ impl Parse for OpcodeEntry {
             1
         };
         Ok(OpcodeEntry { code, ident, length: size })
+    }
+}
+
+impl ToTokens for OpcodeEntry {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        let name = &self.ident;
+        let code = &self.code;
+        tokens.append_all(quote! {
+            pub const #name: u8 = #code;
+        })
     }
 }

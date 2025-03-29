@@ -4,9 +4,6 @@ pub fn disassemble(instructions: Vec<u8>) {
     let mut index = 0;
     while index < instructions.len() {
         let code = &instructions[index];
-        if code >= &INSTRUCTION_COUNT {
-            panic!("Unknown instruction {:#x}", code);
-        }
 
         let name = INSTRUCTION_NAMES[*code as usize];
         let instruction_length = INSTRUCTION_LENGTH[*code as usize];
