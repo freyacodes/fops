@@ -29,18 +29,19 @@ fn assert_empty(code: &VecDeque<u8>) {
     assert!(code.is_empty())
 }
 
-macro_rules! binary_operation {
+#[macro_export]
+macro_rules! binary_operation_test {
     ($name:ident, $operator:expr, $opcode:expr) => {
         #[test]
         fn $name() {
-            let mut code = compile(format!("2 {} 3", $operator).as_str());
-            match_byte(&mut code, OP_CONSTANT);
-            match_number(&mut code, 2.0);
-            match_byte(&mut code, OP_CONSTANT);
-            match_number(&mut code, 3.0);
-            match_byte(&mut code, $opcode);
-            match_byte(&mut code, OP_RETURN);
-            assert_empty(&code);
+            let mut code = crate::compiler::tests::compile(format!("2 {} 3", $operator).as_str());
+            crate::compiler::tests::match_byte(&mut code, OP_CONSTANT);
+            crate::compiler::tests::match_number(&mut code, 2.0);
+            crate::compiler::tests::match_byte(&mut code, OP_CONSTANT);
+            crate::compiler::tests::match_number(&mut code, 3.0);
+            crate::compiler::tests::match_byte(&mut code, $opcode);
+            crate::compiler::tests::match_byte(&mut code, OP_RETURN);
+            crate::compiler::tests::assert_empty(&code);
         }
     };
 }
@@ -55,9 +56,9 @@ fn negation() {
     assert_empty(&code);
 }
 
-binary_operation!(addition, "+", OP_ADD);
-binary_operation!(subtraction, "-", OP_SUBTRACT);
-binary_operation!(multiplication, "*", OP_MULTIPLY);
+binary_operation_test!(addition, "+", OP_ADD);
+binary_operation_test!(subtraction, "-", OP_SUBTRACT);
+binary_operation_test!(multiplication, "*", OP_MULTIPLY);
 
 #[test]
 fn division() {

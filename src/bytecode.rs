@@ -15,11 +15,12 @@ fops_macros::opcodes! {
     0x08 = OP_NEGATE,
     
     0x09 = OP_NOT,
-    0x10 = OP_LESS_THAN,
-    0x11 = OP_LESS_THAN_OR_EQUAL,
-    0x12 = OP_EQUAL,
-    0x13 = OP_GREATER_THAN,
-    0x14 = OP_GREATER_THAN_OR_EQUAL,
+    0x10 = OP_EQUALS,
+    0x11 = OP_NOT_EQUALS,
+    0x12 = OP_LESS_THAN,
+    0x13 = OP_LESS_THAN_OR_EQUALS,
+    0x14 = OP_GREATER_THAN,
+    0x15 = OP_GREATER_THAN_OR_EQUALS,
     
-    0x15 = OP_RETURN
+    0x16 = OP_RETURN
 }
