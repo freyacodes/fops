@@ -11,11 +11,13 @@ pub fn disassemble(instructions: Vec<u8>) {
         let arg_to = index + instruction_length as usize;
         let arguments = &instructions[arg_from..arg_to];
 
-        match *code {
-            OP_CONSTANT => print_f32(&index, name, arguments),
-            OP_NIL | OP_TRUE | OP_FALSE | OP_NEGATE | OP_ADD | OP_SUBTRACT | OP_DIVIDE
-            | OP_MULTIPLY | OP_RETURN => print_simple(&index, name),
-            _ => panic!("Unknown opcode {:#04x}", code),
+        if instruction_length == 1 {
+            print_simple(&index, name)
+        } else {
+            match *code {
+                OP_CONSTANT => print_f32(&index, name, arguments),
+                _ => panic!("Unknown opcode {:#04x}", code),
+            }
         }
 
         index += instruction_length as usize;
