@@ -1,3 +1,5 @@
+mod bools;
+
 use crate::bytecode::codes::*;
 use std::collections::VecDeque;
 
@@ -27,6 +29,22 @@ fn assert_empty(code: &VecDeque<u8>) {
     assert!(code.is_empty())
 }
 
+macro_rules! binary_operation {
+    ($name:ident, $operator:expr, $opcode:expr) => {
+        #[test]
+        fn $name() {
+            let mut code = compile(format!("2 {} 3", $operator).as_str());
+            match_byte(&mut code, OP_CONSTANT);
+            match_number(&mut code, 2.0);
+            match_byte(&mut code, OP_CONSTANT);
+            match_number(&mut code, 3.0);
+            match_byte(&mut code, $opcode);
+            match_byte(&mut code, OP_RETURN);
+            assert_empty(&code);
+        }
+    };
+}
+
 #[test]
 fn negation() {
     let mut code = compile("-2");
@@ -37,41 +55,9 @@ fn negation() {
     assert_empty(&code);
 }
 
-#[test]
-fn addition() {
-    let mut code = compile("2 + 3");
-    match_byte(&mut code, OP_CONSTANT);
-    match_number(&mut code, 2.0);
-    match_byte(&mut code, OP_CONSTANT);
-    match_number(&mut code, 3.0);
-    match_byte(&mut code, OP_ADD);
-    match_byte(&mut code, OP_RETURN);
-    assert_empty(&code);
-}
-
-#[test]
-fn subtraction() {
-    let mut code = compile("2 - 3");
-    match_byte(&mut code, OP_CONSTANT);
-    match_number(&mut code, 2.0);
-    match_byte(&mut code, OP_CONSTANT);
-    match_number(&mut code, 3.0);
-    match_byte(&mut code, OP_SUBTRACT);
-    match_byte(&mut code, OP_RETURN);
-    assert_empty(&code);
-}
-
-#[test]
-fn multiplication() {
-    let mut code = compile("2 * 3");
-    match_byte(&mut code, OP_CONSTANT);
-    match_number(&mut code, 2.0);
-    match_byte(&mut code, OP_CONSTANT);
-    match_number(&mut code, 3.0);
-    match_byte(&mut code, OP_MULTIPLY);
-    match_byte(&mut code, OP_RETURN);
-    assert_empty(&code);
-}
+binary_operation!(addition, "+", OP_ADD);
+binary_operation!(subtraction, "-", OP_SUBTRACT);
+binary_operation!(multiplication, "*", OP_MULTIPLY);
 
 #[test]
 fn division() {
@@ -123,13 +109,4 @@ fn op_literals() {
         match_byte(&mut code, OP_RETURN);
         assert_empty(&code);
     }
-}
-
-#[test]
-fn not_operator() {
-    let mut code = compile("!true");
-    match_byte(&mut code, OP_TRUE);
-    match_byte(&mut code, OP_NOT);
-    match_byte(&mut code, OP_RETURN);
-    assert_empty(&code);
 }
