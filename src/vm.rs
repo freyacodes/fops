@@ -64,7 +64,7 @@ pub fn run(chunk: &Chunk) -> Result<Value, String> {
             codes::OP_NIL => stack.push(NIL),
             codes::OP_TRUE => stack.push(TRUE),
             codes::OP_FALSE => stack.push(FALSE),
-            
+
             codes::OP_ADD => binary_op!(+, "addition"),
             codes::OP_SUBTRACT => binary_op!(-, "subtraction"),
             codes::OP_DIVIDE => binary_op!(/, "divide"),
@@ -80,7 +80,7 @@ pub fn run(chunk: &Chunk) -> Result<Value, String> {
                     },
                 };
             }
-            
+
             codes::OP_NOT => {
                 let value = stack.pop().expect("Stack is empty");
                 match value {
@@ -88,7 +88,7 @@ pub fn run(chunk: &Chunk) -> Result<Value, String> {
                     _ => return runtime_error(pc, &chunk, format!("Attempt to negate {}", value.to_string()))
                 }
             },
-            
+
             codes::OP_RETURN => return Ok(stack.pop().expect("Stack is empty")),
             _ => panic!("Unexpected opcode: {:04x}", instruction),
         }
