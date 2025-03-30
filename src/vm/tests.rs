@@ -33,6 +33,7 @@ fn negation() {
 #[test]
 fn illegal_negation() {
     vm_test!(OP_FALSE, OP_NEGATE => !);
+    vm_test!(OP_NIL, OP_NEGATE => !);
 }
 
 #[test]
@@ -43,6 +44,7 @@ fn addition() {
 #[test]
 fn illegal_addition() {
     vm_test!(OP_FALSE, 15.0, OP_ADD => !);
+    vm_test!(15.0, OP_FALSE, OP_ADD => !);
 }
 
 #[test]
@@ -53,6 +55,7 @@ fn subtraction() {
 #[test]
 fn division() {
     vm_test!(15.0, 5.0, OP_DIVIDE => 3.0);
+    vm_test!(15.0, 0.0, OP_DIVIDE => Value::Number(f64::INFINITY));
 }
 
 #[test]
@@ -61,7 +64,7 @@ fn multiplication() {
 }
 
 #[test]
-fn not_false() {
+fn not() {
     vm_test!(OP_TRUE, OP_NOT => false);
     vm_test!(OP_FALSE, OP_NOT => true);
 }
