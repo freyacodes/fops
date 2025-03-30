@@ -88,6 +88,14 @@ pub fn run(chunk: &Chunk) -> Result<Value, String> {
                     _ => return runtime_error(pc, &chunk, format!("Attempt to negate {}", value.to_string()))
                 }
             },
+            codes::OP_EQUALS => {
+                let (left, right) = pop2(&mut stack);
+                stack.push(Value::Bool(left == right));
+            }
+            codes::OP_NOT_EQUALS => {
+                let (left, right) = pop2(&mut stack);
+                stack.push(Value::Bool(left != right));
+            }
 
             codes::OP_RETURN => return Ok(stack.pop().expect("Stack is empty")),
             _ => panic!("Unexpected opcode: {:04x}", instruction),
@@ -98,6 +106,12 @@ pub fn run(chunk: &Chunk) -> Result<Value, String> {
 fn peek(stack: &Vec<Value>, offset_from_end: usize) -> Option<&Value> {
     let len = stack.len();
     stack.get(len - 1 - offset_from_end)
+}
+
+fn pop2(stack: &mut Vec<Value>) -> (Value, Value) {
+    let right = stack.pop().expect("Stack is empty");
+    let left = stack.pop().expect("Stack only had one element");
+    (left, right)
 }
 
 fn runtime_error<T>(pc: usize, chunk: &Chunk, error: String) -> Result<T, String> {
