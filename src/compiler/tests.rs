@@ -35,9 +35,9 @@ macro_rules! binary_operation_test {
         #[test]
         fn $name() {
             let mut code = crate::compiler::tests::compile(format!("2 {} 3", $operator).as_str());
-            crate::compiler::tests::match_byte(&mut code, OP_CONSTANT);
+            crate::compiler::tests::match_byte(&mut code, OP_F64);
             crate::compiler::tests::match_number(&mut code, 2.0);
-            crate::compiler::tests::match_byte(&mut code, OP_CONSTANT);
+            crate::compiler::tests::match_byte(&mut code, OP_F64);
             crate::compiler::tests::match_number(&mut code, 3.0);
             crate::compiler::tests::match_byte(&mut code, $opcode);
             crate::compiler::tests::match_byte(&mut code, OP_RETURN);
@@ -49,7 +49,7 @@ macro_rules! binary_operation_test {
 #[test]
 fn negation() {
     let mut code = compile("-2");
-    match_byte(&mut code, OP_CONSTANT);
+    match_byte(&mut code, OP_F64);
     match_number(&mut code, 2.0);
     match_byte(&mut code, OP_NEGATE);
     match_byte(&mut code, OP_RETURN);
@@ -63,11 +63,11 @@ binary_operation_test!(multiplication, "*", OP_MULTIPLY);
 #[test]
 fn division() {
     let mut code = compile("2 + 3 / 0.5");
-    match_byte(&mut code, OP_CONSTANT);
+    match_byte(&mut code, OP_F64);
     match_number(&mut code, 2.0);
-    match_byte(&mut code, OP_CONSTANT);
+    match_byte(&mut code, OP_F64);
     match_number(&mut code, 3.0);
-    match_byte(&mut code, OP_CONSTANT);
+    match_byte(&mut code, OP_F64);
     match_number(&mut code, 0.5);
     match_byte(&mut code, OP_DIVIDE);
     match_byte(&mut code, OP_ADD);
@@ -78,12 +78,12 @@ fn division() {
 #[test]
 fn grouping() {
     let mut code = compile("(2 + 3) / 0.5");
-    match_byte(&mut code, OP_CONSTANT);
+    match_byte(&mut code, OP_F64);
     match_number(&mut code, 2.0);
-    match_byte(&mut code, OP_CONSTANT);
+    match_byte(&mut code, OP_F64);
     match_number(&mut code, 3.0);
     match_byte(&mut code, OP_ADD);
-    match_byte(&mut code, OP_CONSTANT);
+    match_byte(&mut code, OP_F64);
     match_number(&mut code, 0.5);
     match_byte(&mut code, OP_DIVIDE);
     match_byte(&mut code, OP_RETURN);

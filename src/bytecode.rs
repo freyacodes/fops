@@ -3,7 +3,7 @@ pub mod chunk;
 
 fops_macros::opcodes! {
     codes:
-    0x00 = OP_CONSTANT len 5,
+    0x00 = OP_F64 len 5,
     0x01 = OP_NIL,
     0x02 = OP_TRUE,
     0x03 = OP_FALSE,

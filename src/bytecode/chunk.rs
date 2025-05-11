@@ -1,4 +1,4 @@
-use crate::bytecode::codes::OP_CONSTANT;
+use crate::bytecode::codes::OP_F64;
 
 pub struct Chunk {
     pub(crate) code: Vec<u8>,
@@ -30,7 +30,7 @@ impl Chunk {
     }
 
     pub fn write_constant_f64(&mut self, float: f64, line: u16) {
-        self.write(OP_CONSTANT, line);
+        self.write(OP_F64, line);
         f64::to_be_bytes(float).iter().for_each(|b| self.write(*b, line));
     }
 
