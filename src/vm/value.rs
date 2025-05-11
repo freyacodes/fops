@@ -8,7 +8,13 @@ pub const FALSE: Value = Value::Bool(false);
 pub enum Value {
     Number(f64),
     Bool(bool),
-    Nil
+    Nil,
+    Obj(Obj)
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum Obj {
+    StringObj { value: String }
 }
 
 impl Display for Value {
@@ -18,8 +24,15 @@ impl Display for Value {
             Value::Number(number) => write!(f, "{}", number),
             Value::Bool(bool) => write!(f, "{}", bool),
             Value::Nil => write!(f, "nil"),
+            Value::Obj(obj) => write!(f, "{}", obj),
         }
     }
 }
 
-
+impl Display for Obj {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Obj::StringObj { value } => write!(f, "{}", value),
+        }
+    }
+}
