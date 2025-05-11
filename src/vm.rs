@@ -1,4 +1,4 @@
-mod value;
+pub mod value;
 #[cfg(test)]
 mod tests;
 
@@ -60,10 +60,14 @@ pub fn run(chunk: &Chunk) -> Result<Value, String> {
         let instruction: u8 = read_byte!();
 
         match instruction {
-            codes::OP_CONSTANT => stack.push(Value::Number(read_f64!())),
+            codes::OP_F64 => stack.push(Value::Number(read_f64!())),
             codes::OP_NIL => stack.push(NIL),
             codes::OP_TRUE => stack.push(TRUE),
             codes::OP_FALSE => stack.push(FALSE),
+            codes::OP_CONTANT => {
+                let constant = chunk.load_constant(read_byte!());
+                stack.push(constant);
+            },
 
             codes::OP_ADD => binary_op!(+, "addition"),
             codes::OP_SUBTRACT => binary_op!(-, "subtraction"),

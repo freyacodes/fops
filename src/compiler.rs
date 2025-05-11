@@ -6,6 +6,7 @@ use crate::bytecode::codes::*;
 use crate::compiler::Precedence::*;
 use crate::scanner::TokenType::*;
 use crate::scanner::{Scanner, Token, TokenType, PLACEHOLDER_TOKEN};
+use crate::vm::value::Value;
 use strum::VariantArray;
 
 pub(crate) fn compile(source: String) -> Result<Chunk, ()> {
@@ -114,7 +115,7 @@ impl<'a> Parser<'a> {
                     TokenAmpAmp =>       rule(None,                 None,               PrecNone),
                     TokenPipePipe =>     rule(None,                 None,               PrecNone),
                     TokenIdentifier =>   rule(None,                 None,               PrecNone),
-                    TokenString =>       rule(None,                 None,               PrecNone),
+                    TokenString =>       rule(Some(Self::string),   None,               PrecNone),
                     TokenNumber =>       rule(Some(Self::number),   None,               PrecNone),
                     TokenElse =>         rule(None,                 None,               PrecNone),
                     TokenFalse =>        rule(Some(Self::literal),  None,               PrecNone),
@@ -192,6 +193,12 @@ impl<'a> Parser<'a> {
         self.chunk.write(byte, self.previous.line as u16);
     }
 
+    fn emit_constant(&mut self, constant: Value) {
+        if let Err(string) = self.chunk.write_constant(constant, self.previous.line as u16) {
+            self.error(&string)
+        }
+    }
+    
     fn error_at_current(&mut self, message: &str) {
         self.error_at(&self.current.clone(), message);
     }
@@ -228,7 +235,7 @@ impl<'a> Parser<'a> {
 
     fn number(&mut self) {
         match self.previous.string.parse::<f64>() {
-            Ok(value) => self.chunk.write_constant_f64(value, self.previous.line as u16),
+            Ok(value) => self.chunk.write_f64(value, self.previous.line as u16),
             Err(_) => self.error("Failed to parse number."),
         }
     }
@@ -251,6 +258,12 @@ impl<'a> Parser<'a> {
             TokenFalse => self.emit_byte(OP_FALSE),
             _ => unreachable!(),
         }
+    }
+
+    fn string(&mut self) {
+        let token_slice = self.previous.string;
+        let string_copy = self.previous.string[1..(token_slice.len() - 1)].to_string();
+        self.emit_constant(Value::from(string_copy));
     }
 }
 

@@ -97,10 +97,10 @@ impl Input {
                 chunk.write0(#ident);
             },
             Input::Float(lit) => quote! {
-                chunk.write_constant_f64_0(#lit);
+                chunk.write_f64_0(#lit);
             },
             Input::FloatIdentifier(ident) => quote! {
-                chunk.write_constant_f64_0(#ident);
+                chunk.write_f64_0(#ident);
             },
         }
     }

@@ -94,3 +94,11 @@ fn not_equals() {
     let nan = f64::NAN;
     vm_test!(nan, nan, OP_NOT_EQUALS => true);
 }
+
+#[test]
+fn hello_world() {
+    let mut chunk = crate::bytecode::chunk::Chunk::new();
+    chunk.write_constant(Value::from("Hello, world!"), 0).unwrap();
+    chunk.write0(OP_RETURN);
+    assert_eq!(Value::from("Hello, world!"), crate::vm::run(&chunk).unwrap());
+}

@@ -36,3 +36,15 @@ impl Display for Obj {
         }
     }
 }
+
+impl From<String> for Value {
+    fn from(string: String) -> Value {
+        Value::Obj(Obj::StringObj { value: string })
+    }
+}
+
+impl From<&str> for Value {
+    fn from(string: &str) -> Value {
+        Value::from(string.to_string())
+    }
+}
