@@ -1,6 +1,6 @@
-use fops_macros::vm_test;
 use crate::bytecode::codes::*;
 use crate::vm::value::*;
+use fops_macros::vm_test;
 
 fn assert_runtime_error(result: Result<Value, String>) {
     match result {
@@ -78,6 +78,8 @@ fn equals() {
     vm_test!(OP_NIL, OP_NIL, OP_EQUALS => true);
     vm_test!(5.0, 5.0, OP_EQUALS => true);
     vm_test!(5.0, 4.0, OP_EQUALS => false);
+    let nan = f64::NAN;
+    vm_test!(nan, nan, OP_EQUALS => false);
 }
 
 #[test]
@@ -89,4 +91,6 @@ fn not_equals() {
     vm_test!(OP_NIL, OP_NIL, OP_NOT_EQUALS => false);
     vm_test!(5.0, 5.0, OP_NOT_EQUALS => false);
     vm_test!(5.0, 4.0, OP_NOT_EQUALS => true);
+    let nan = f64::NAN;
+    vm_test!(nan, nan, OP_NOT_EQUALS => true);
 }

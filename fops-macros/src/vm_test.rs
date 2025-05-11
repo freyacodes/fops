@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
 use syn::{parse_macro_input, Token};
 
@@ -42,6 +42,7 @@ struct VmTest {
 enum Input {
     Op(syn::Ident),
     Float(syn::LitFloat),
+    FloatIdentifier(syn::Ident),
 }
 
 enum Expected {
@@ -57,11 +58,14 @@ impl Parse for VmTest {
 
         while !input.peek(Token![=>]) {
             if input.peek(syn::Ident) {
-                inputs.push(Input::Op(input.parse()?));
+                let ident: syn::Ident = input.parse()?;
+                if ident.clone().into_token_stream().to_string().starts_with("OP_") {
+                    inputs.push(Input::Op(ident));
+                } else {
+                    inputs.push(Input::FloatIdentifier(ident));
+                }
             } else if input.peek(syn::LitFloat) {
                 inputs.push(Input::Float(input.parse()?));
-            } else {
-                return Err(input.error("Expected identifier to float literal"))
             }
 
             if input.peek(Token![,]) {
@@ -94,6 +98,9 @@ impl Input {
             },
             Input::Float(lit) => quote! {
                 chunk.write_constant_f64_0(#lit);
+            },
+            Input::FloatIdentifier(ident) => quote! {
+                chunk.write_constant_f64_0(#ident);
             },
         }
     }
