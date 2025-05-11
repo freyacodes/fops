@@ -97,8 +97,5 @@ fn not_equals() {
 
 #[test]
 fn hello_world() {
-    let mut chunk = crate::bytecode::chunk::Chunk::new();
-    chunk.write_constant(Value::from("Hello, world!"), 0).unwrap();
-    chunk.write0(OP_RETURN);
-    assert_eq!(Value::from("Hello, world!"), crate::vm::run(&chunk).unwrap());
+    vm_test!("Hello, world!" => "Hello, world!");
 }

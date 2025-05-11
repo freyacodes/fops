@@ -18,11 +18,14 @@ pub(crate) fn vm_test(item: proc_macro::TokenStream) -> proc_macro::TokenStream 
         Expected::Float(lit) => quote! {
             assert_eq!(crate::vm::value::Value::Number(#lit), crate::vm::run(&chunk).unwrap());
         },
-        Expected::RuntimeError => quote! {
-            crate::vm::tests::assert_runtime_error(crate::vm::run(&chunk));
+        Expected::String(lit) => quote! {
+            assert_eq!(crate::vm::value::Value::from(#lit), crate::vm::run(&chunk).unwrap());
         },
         Expected::Expression(expr) => quote! {
             assert_eq!(#expr, crate::vm::run(&chunk).unwrap());
+        },
+        Expected::RuntimeError => quote! {
+            crate::vm::tests::assert_runtime_error(crate::vm::run(&chunk));
         },
     };
 
@@ -43,12 +46,14 @@ enum Input {
     Op(syn::Ident),
     Float(syn::LitFloat),
     FloatIdentifier(syn::Ident),
+    String(syn::LitStr),
 }
 
 enum Expected {
     Boolean(syn::LitBool),
     Float(syn::LitFloat),
     Expression(syn::Expr),
+    String(syn::LitStr),
     RuntimeError
 }
 
@@ -66,6 +71,8 @@ impl Parse for VmTest {
                 }
             } else if input.peek(syn::LitFloat) {
                 inputs.push(Input::Float(input.parse()?));
+            } else if input.peek(syn::LitStr) {
+                inputs.push(Input::String(input.parse()?));
             }
 
             if input.peek(Token![,]) {
@@ -82,6 +89,8 @@ impl Parse for VmTest {
         } else if input.peek(Token![!]) {
             input.parse::<Token![!]>()?;
             Expected::RuntimeError
+        } else if input.peek(syn::LitStr) {
+            Expected::String(input.parse()?)
         } else {
             Expected::Expression(input.parse()?)
         };
@@ -102,6 +111,9 @@ impl Input {
             Input::FloatIdentifier(ident) => quote! {
                 chunk.write_f64_0(#ident);
             },
+            Input::String(lit) => quote! {
+                chunk.write_constant(crate::vm::value::Value::from(#lit), 0).unwrap();
+            }
         }
     }
 }
