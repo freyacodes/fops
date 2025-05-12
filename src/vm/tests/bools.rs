@@ -38,3 +38,12 @@ fn not_equals() {
     let nan = f64::NAN;
     vm_test!(nan, nan, OP_NOT_EQUALS => true);
 }
+
+#[test]
+fn illegal_operations() {
+    vm_test!(OP_TRUE, OP_TRUE, OP_ADD => !);
+    vm_test!(OP_TRUE, OP_TRUE, OP_SUBTRACT => !);
+    vm_test!(OP_TRUE, OP_TRUE, OP_MULTIPLY => !);
+    vm_test!(OP_TRUE, OP_TRUE, OP_DIVIDE => !);
+    vm_test!(OP_TRUE, OP_TRUE, OP_NEGATE => !);
+}
