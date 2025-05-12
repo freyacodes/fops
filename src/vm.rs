@@ -69,7 +69,22 @@ pub fn run(chunk: &Chunk) -> Result<Value, String> {
                 stack.push(constant);
             },
 
-            codes::OP_ADD => binary_op!(+, "addition"),
+            codes::OP_ADD => {
+                let right = peek(&stack, 0).expect("Stack is empty");
+                let left = peek(&stack, 1).expect("Stack only had one element");
+
+                let result = if let (Value::Number(left), Value::Number(right)) = (left, right) {
+                    Value::Number(left + right)
+                } else if left.is_string() || right.is_string() {
+                    Value::from(format!("{}{}", left, right))
+                } else {
+                    return runtime_error(pc, &chunk, format!("Cannot perform addition between {} and {}", left, right));
+                };
+
+                stack.pop().unwrap();
+                stack.pop().unwrap();
+                stack.push(result);
+            },
             codes::OP_SUBTRACT => binary_op!(-, "subtraction"),
             codes::OP_DIVIDE => binary_op!(/, "divide"),
             codes::OP_MULTIPLY => binary_op!(*, "multiplication"),

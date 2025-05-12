@@ -17,8 +17,16 @@ pub enum Obj {
     StringObj { value: String }
 }
 
-impl Display for Value {
+impl Value {
+    pub fn is_string(&self) -> bool {
+        match self { 
+            Value::Obj(Obj::StringObj { .. }) => true,
+            _ => false
+        }
+    }
+}
 
+impl Display for Value {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Value::Number(number) => write!(f, "{}", number),

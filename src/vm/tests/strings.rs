@@ -14,3 +14,8 @@ fn comparison() {
     vm_test!("One", "Two", OP_EQUALS => false);
     vm_test!("One", "Two", OP_NOT_EQUALS => true);
 }
+
+#[test]
+fn concatenation() {
+    vm_test!("Hello, ", "world!", OP_ADD => "Hello, world!");
+}
