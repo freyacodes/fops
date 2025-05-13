@@ -15,8 +15,11 @@ pub fn interpret(source: String, repl: bool) -> Result<Value, String> {
 
 #[allow(unused_assignments)]
 pub fn run(chunk: &Chunk) -> Result<Value, String> {
-    #[allow(unused)]
     let instructions = &chunk.code;
+    if instructions.is_empty() {
+        return Ok(Value::Nil);
+    }
+    
     #[allow(unused)]
     let mut pc: usize = 0; // Performance note: This would likely be faster as a raw (unsafe) pointer
     let mut stack: Vec<Value> = Vec::new();
