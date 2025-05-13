@@ -8,6 +8,8 @@ mod scanner;
 pub mod vm;
 mod compiler;
 mod repl;
+#[cfg(test)]
+mod integration_tests;
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
