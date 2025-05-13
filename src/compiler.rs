@@ -244,7 +244,8 @@ impl<'a> Parser<'a> {
 // Statements
 impl<'a> Parser<'a> {
     fn declaration(&mut self) {
-        self.statement()
+        self.statement();
+        if self.panic_mode { self.synchronise() }
     }
     
     fn statement(&mut self) {
@@ -261,6 +262,25 @@ impl<'a> Parser<'a> {
         } else {
             self.error_at_current("Expect ';' after expression.");
         }
+    }
+    
+    fn synchronise(&mut self) {
+        self.panic_mode = false;
+
+        while !self.check(EOF) {
+            if self.previous.token_type == TokenSemicolon {
+                return;
+            }
+            
+            match self.current.token_type { 
+                TokenFun | TokenLet | TokenRepeat | TokenIf | TokenWhile | TokenReturn => {
+                    return
+                }
+                _ => self.advance()
+            }
+        }
+        
+        self.advance()
     }
 }
 
