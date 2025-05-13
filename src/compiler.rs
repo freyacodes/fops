@@ -32,6 +32,7 @@ struct Parser<'a> {
     repl: bool,
     previous: Token<'a>,
     scanner: Scanner<'a>,
+    scope_depth: usize,
     had_error: bool,
     panic_mode: bool,
     rules: Vec<ParseRule<'a>>,
@@ -68,6 +69,7 @@ impl<'a> Parser<'a> {
             repl,
             current: PLACEHOLDER_TOKEN,
             previous: PLACEHOLDER_TOKEN,
+            scope_depth: 0,
             had_error: false,
             panic_mode: false,
             rules: Vec::new(),
@@ -239,6 +241,14 @@ impl<'a> Parser<'a> {
         eprintln!(" {}", message);
         self.had_error = true;
     }
+    
+    fn begin_scope(&mut self) {
+        self.scope_depth += 1;
+    }
+
+    fn end_scope(&mut self) {
+        self.scope_depth -= 1;
+    }
 }
 
 // Statements
@@ -249,7 +259,21 @@ impl<'a> Parser<'a> {
     }
     
     fn statement(&mut self) {
-        self.expression_statement()
+        if self.match_token(TokenLeftBrace) {
+            self.begin_scope();
+            self.block();
+            self.end_scope();
+        } else {
+            self.expression_statement()
+        }
+    }
+    
+    fn block(&mut self) {
+        while !self.check(TokenRightBrace) && !self.check(EOF) {
+            self.declaration()
+        }
+        
+        self.consume(TokenRightBrace, "Expect '}' after block.");
     }
     
     fn expression_statement(&mut self) {
