@@ -3,7 +3,11 @@ mod bools;
 use crate::bytecode::codes::*;
 use std::collections::VecDeque;
 
-fn repl(source: &str) -> VecDeque<u8> {
+fn compile(source: &str) -> VecDeque<u8> {
+    super::compile(source.to_string(), true).unwrap().code.into()
+}
+
+fn repl_compile(source: &str) -> VecDeque<u8> {
     super::compile(source.to_string(), true).unwrap().code.into()
 }
 
@@ -22,11 +26,23 @@ fn match_number(code: &mut VecDeque<u8>, expected: f64) {
         code.pop_front().expect("Attempt to read f64 byte 7/8"),
         code.pop_front().expect("Attempt to read f64 byte 8/8"),
     ];
-    assert_eq!(f64::from_be_bytes(bytes), expected);
+    let actual = f64::from_be_bytes(bytes);
+    if actual != expected {
+        println!("Actual bytes:   {:?}", bytes);
+        println!("Expected bytes: {:?}", expected.to_be_bytes());
+        assert_eq!(actual, expected);
+    }
+}
+
+fn match_f64_op(code: &mut VecDeque<u8>, expected: f64) {
+    match_byte(code, OP_F64);
+    match_number(code, expected);
 }
 
 fn assert_empty(code: &VecDeque<u8>) {
-    assert!(code.is_empty())
+    if !code.is_empty() {
+        panic!("Code is still remaining: {:?}", code);
+    }
 }
 
 #[macro_export]
@@ -34,11 +50,9 @@ macro_rules! binary_operation_test {
     ($name:ident, $operator:expr, $opcode:expr) => {
         #[test]
         fn $name() {
-            let mut code = crate::compiler::tests::repl(format!("2 {} 3", $operator).as_str());
-            crate::compiler::tests::match_byte(&mut code, OP_F64);
-            crate::compiler::tests::match_number(&mut code, 2.0);
-            crate::compiler::tests::match_byte(&mut code, OP_F64);
-            crate::compiler::tests::match_number(&mut code, 3.0);
+            let mut code = crate::compiler::tests::repl_compile(format!("2 {} 3", $operator).as_str());
+            crate::compiler::tests::match_f64_op(&mut code, 2.0);
+            crate::compiler::tests::match_f64_op(&mut code, 3.0);
             crate::compiler::tests::match_byte(&mut code, $opcode);
             crate::compiler::tests::match_byte(&mut code, OP_RETURN);
             crate::compiler::tests::assert_empty(&code);
@@ -48,9 +62,8 @@ macro_rules! binary_operation_test {
 
 #[test]
 fn negation() {
-    let mut code = repl("-2");
-    match_byte(&mut code, OP_F64);
-    match_number(&mut code, 2.0);
+    let mut code = repl_compile("-2");
+    match_f64_op(&mut code, 2.0);
     match_byte(&mut code, OP_NEGATE);
     match_byte(&mut code, OP_RETURN);
     assert_empty(&code);
@@ -62,13 +75,10 @@ binary_operation_test!(multiplication, "*", OP_MULTIPLY);
 
 #[test]
 fn division() {
-    let mut code = repl("2 + 3 / 0.5");
-    match_byte(&mut code, OP_F64);
-    match_number(&mut code, 2.0);
-    match_byte(&mut code, OP_F64);
-    match_number(&mut code, 3.0);
-    match_byte(&mut code, OP_F64);
-    match_number(&mut code, 0.5);
+    let mut code = repl_compile("2 + 3 / 0.5");
+    match_f64_op(&mut code, 2.0);
+    match_f64_op(&mut code, 3.0);
+    match_f64_op(&mut code, 0.5);
     match_byte(&mut code, OP_DIVIDE);
     match_byte(&mut code, OP_ADD);
     match_byte(&mut code, OP_RETURN);
@@ -77,14 +87,11 @@ fn division() {
 
 #[test]
 fn grouping() {
-    let mut code = repl("(2 + 3) / 0.5");
-    match_byte(&mut code, OP_F64);
-    match_number(&mut code, 2.0);
-    match_byte(&mut code, OP_F64);
-    match_number(&mut code, 3.0);
+    let mut code = repl_compile("(2 + 3) / 0.5");
+    match_f64_op(&mut code, 2.0);
+    match_f64_op(&mut code, 3.0);
     match_byte(&mut code, OP_ADD);
-    match_byte(&mut code, OP_F64);
-    match_number(&mut code, 0.5);
+    match_f64_op(&mut code, 0.5);
     match_byte(&mut code, OP_DIVIDE);
     match_byte(&mut code, OP_RETURN);
     assert_empty(&code);
@@ -93,21 +100,33 @@ fn grouping() {
 #[test]
 fn op_literals() {
     {
-        let mut code = repl("nil");
+        let mut code = repl_compile("nil");
         match_byte(&mut code, OP_NIL);
         match_byte(&mut code, OP_RETURN);
         assert_empty(&code);
     }
     {
-        let mut code = repl("true");
+        let mut code = repl_compile("true");
         match_byte(&mut code, OP_TRUE);
         match_byte(&mut code, OP_RETURN);
         assert_empty(&code);
     }
     {
-        let mut code = repl("false");
+        let mut code = repl_compile("false");
         match_byte(&mut code, OP_FALSE);
         match_byte(&mut code, OP_RETURN);
         assert_empty(&code);
     }
+}
+
+#[test]
+fn expression_statement() {
+    let mut code = compile("false; 50 == 5;");
+    match_byte(&mut code, OP_FALSE);
+    match_byte(&mut code, OP_POP);
+    match_f64_op(&mut code, 50.0);
+    match_f64_op(&mut code, 5.0);
+    match_byte(&mut code, OP_EQUALS);
+    match_byte(&mut code, OP_POP);
+    assert_empty(&code);
 }

@@ -21,7 +21,6 @@ pub(crate) fn compile(source: String, repl: bool) -> Result<Chunk, ()> {
     match parser.had_error {
         true => Err(()),
         false => {
-            parser.emit_byte(OP_RETURN);
             Ok(chunk)
         }
     }
@@ -257,7 +256,9 @@ impl<'a> Parser<'a> {
         if self.check(TokenSemicolon) {
             self.advance();
             self.emit_byte(OP_POP);
-        } else if !self.repl || !self.check(EOF) {
+        } else if self.repl && self.check(EOF) {
+            self.emit_byte(OP_RETURN);
+        } else {
             self.error_at_current("Expect ';' after expression.");
         }
     }
