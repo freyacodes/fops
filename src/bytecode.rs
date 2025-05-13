@@ -23,5 +23,6 @@ fops_macros::opcodes! {
     0x15 = OP_GREATER_THAN,
     0x16 = OP_GREATER_THAN_OR_EQUALS,
     
-    0x17 = OP_RETURN
+    0x17 = OP_POP,
+    0x18 = OP_RETURN
 }

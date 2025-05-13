@@ -1,10 +1,10 @@
 use crate::binary_operation_test;
 use crate::bytecode::codes::*;
-use crate::compiler::tests::{assert_empty, compile, match_byte};
+use crate::compiler::tests::{assert_empty, repl, match_byte};
 
 #[test]
 fn not_operator() {
-    let mut code = compile("!true");
+    let mut code = repl("!true");
     match_byte(&mut code, OP_TRUE);
     match_byte(&mut code, OP_NOT);
     match_byte(&mut code, OP_RETURN);

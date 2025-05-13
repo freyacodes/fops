@@ -8,8 +8,8 @@ use crate::compiler;
 use std::ops::Neg;
 use crate::vm::value::{Value, FALSE, NIL, TRUE};
 
-pub fn interpret(source: String) -> Result<Value, String> {
-    let chunk = compiler::compile(source).or(Err("Compilation failed"))?;
+pub fn interpret(source: String, repl: bool) -> Result<Value, String> {
+    let chunk = compiler::compile(source, repl).or(Err("Compilation failed"))?;
     run(&chunk)
 }
 
@@ -116,6 +116,7 @@ pub fn run(chunk: &Chunk) -> Result<Value, String> {
                 stack.push(Value::Bool(left != right));
             }
 
+            codes::OP_POP => { stack.pop().expect("Stack is empty"); },
             codes::OP_RETURN => return Ok(stack.pop().expect("Stack is empty")),
             _ => panic!("Unexpected opcode: {:04x}", instruction),
         }

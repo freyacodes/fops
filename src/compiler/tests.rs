@@ -3,8 +3,8 @@ mod bools;
 use crate::bytecode::codes::*;
 use std::collections::VecDeque;
 
-fn compile(source: &str) -> VecDeque<u8> {
-    super::compile(source.to_string()).unwrap().code.into()
+fn repl(source: &str) -> VecDeque<u8> {
+    super::compile(source.to_string(), true).unwrap().code.into()
 }
 
 fn match_byte(code: &mut VecDeque<u8>, byte: u8) {
@@ -34,7 +34,7 @@ macro_rules! binary_operation_test {
     ($name:ident, $operator:expr, $opcode:expr) => {
         #[test]
         fn $name() {
-            let mut code = crate::compiler::tests::compile(format!("2 {} 3", $operator).as_str());
+            let mut code = crate::compiler::tests::repl(format!("2 {} 3", $operator).as_str());
             crate::compiler::tests::match_byte(&mut code, OP_F64);
             crate::compiler::tests::match_number(&mut code, 2.0);
             crate::compiler::tests::match_byte(&mut code, OP_F64);
@@ -48,7 +48,7 @@ macro_rules! binary_operation_test {
 
 #[test]
 fn negation() {
-    let mut code = compile("-2");
+    let mut code = repl("-2");
     match_byte(&mut code, OP_F64);
     match_number(&mut code, 2.0);
     match_byte(&mut code, OP_NEGATE);
@@ -62,7 +62,7 @@ binary_operation_test!(multiplication, "*", OP_MULTIPLY);
 
 #[test]
 fn division() {
-    let mut code = compile("2 + 3 / 0.5");
+    let mut code = repl("2 + 3 / 0.5");
     match_byte(&mut code, OP_F64);
     match_number(&mut code, 2.0);
     match_byte(&mut code, OP_F64);
@@ -77,7 +77,7 @@ fn division() {
 
 #[test]
 fn grouping() {
-    let mut code = compile("(2 + 3) / 0.5");
+    let mut code = repl("(2 + 3) / 0.5");
     match_byte(&mut code, OP_F64);
     match_number(&mut code, 2.0);
     match_byte(&mut code, OP_F64);
@@ -93,19 +93,19 @@ fn grouping() {
 #[test]
 fn op_literals() {
     {
-        let mut code = compile("nil");
+        let mut code = repl("nil");
         match_byte(&mut code, OP_NIL);
         match_byte(&mut code, OP_RETURN);
         assert_empty(&code);
     }
     {
-        let mut code = compile("true");
+        let mut code = repl("true");
         match_byte(&mut code, OP_TRUE);
         match_byte(&mut code, OP_RETURN);
         assert_empty(&code);
     }
     {
-        let mut code = compile("false");
+        let mut code = repl("false");
         match_byte(&mut code, OP_FALSE);
         match_byte(&mut code, OP_RETURN);
         assert_empty(&code);

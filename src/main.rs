@@ -32,7 +32,7 @@ fn main() {
             return
         } else {
             let string = fs::read_to_string(path).expect("Failed to read file");
-            match vm::interpret(string) {
+            match vm::interpret(string, false) {
                 Ok(value) => { println!("Exited with value: {}", value.to_string()); },
                 Err(error) => { println!("{}", error); }
             };

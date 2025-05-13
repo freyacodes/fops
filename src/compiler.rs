@@ -9,13 +9,14 @@ use crate::scanner::{Scanner, Token, TokenType, PLACEHOLDER_TOKEN};
 use crate::vm::value::Value;
 use strum::VariantArray;
 
-pub(crate) fn compile(source: String) -> Result<Chunk, ()> {
+pub(crate) fn compile(source: String, repl: bool) -> Result<Chunk, ()> {
     let mut chunk = Chunk::new();
-    let mut parser = Parser::init(&source, &mut chunk);
+    let mut parser = Parser::init(&source, &mut chunk, repl);
 
     parser.advance();
-    parser.expression();
-    parser.consume(EOF, "Expected end of expression.");
+    while !parser.match_token(EOF) {
+        parser.declaration();
+    }
 
     match parser.had_error {
         true => Err(()),
@@ -29,6 +30,7 @@ pub(crate) fn compile(source: String) -> Result<Chunk, ()> {
 struct Parser<'a> {
     current: Token<'a>,
     chunk: &'a mut Chunk,
+    repl: bool,
     previous: Token<'a>,
     scanner: Scanner<'a>,
     had_error: bool,
@@ -60,10 +62,11 @@ struct ParseRule<'a> {
 type ParseFn<'a> = fn(&mut Parser<'a>) -> ();
 
 impl<'a> Parser<'a> {
-    fn init(source: &'a str, chunk: &'a mut Chunk) -> Parser<'a> {
+    fn init(source: &'a str, chunk: &'a mut Chunk, repl: bool) -> Parser<'a> {
         let mut parser = Parser {
             scanner: Scanner::new(source),
             chunk,
+            repl,
             current: PLACEHOLDER_TOKEN,
             previous: PLACEHOLDER_TOKEN,
             had_error: false,
@@ -164,11 +167,24 @@ impl<'a> Parser<'a> {
     }
 
     fn consume(&mut self, token: TokenType, message: &str) {
-        if self.current.token_type == token {
+        if self.check(token) {
             self.advance()
         } else {
             self.error_at_current(message)
         }
+    }
+
+    fn match_token(&mut self, token: TokenType) -> bool {
+        if self.check(token) { 
+            self.advance();
+            true
+        } else {
+            false
+        }
+    }
+    
+    fn check(&self, token: TokenType) -> bool {
+        self.current.token_type == token
     }
 
     fn advance(&mut self) {
@@ -223,6 +239,27 @@ impl<'a> Parser<'a> {
 
         eprintln!(" {}", message);
         self.had_error = true;
+    }
+}
+
+// Statements
+impl<'a> Parser<'a> {
+    fn declaration(&mut self) {
+        self.statement()
+    }
+    
+    fn statement(&mut self) {
+        self.expression_statement()
+    }
+    
+    fn expression_statement(&mut self) {
+        self.expression();
+        if self.check(TokenSemicolon) {
+            self.advance();
+            self.emit_byte(OP_POP);
+        } else if !self.repl || !self.check(EOF) {
+            self.error_at_current("Expect ';' after expression.");
+        }
     }
 }
 
